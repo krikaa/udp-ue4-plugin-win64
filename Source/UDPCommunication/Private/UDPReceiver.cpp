@@ -35,6 +35,8 @@ bool UUDPReceiver::StartUDPReceiver(const FString& SocketName, const int32 Port)
 
 void UUDPReceiver::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	Super::EndPlay(EndPlayReason);
+	
 	delete Receiver;
 	Receiver = nullptr;
 

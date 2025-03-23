@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(ClassGroup=(Communication), meta=(BlueprintSpawnableComponent))
 class UDPCOMMUNICATION_API UUDPReceiver : public UActorComponent
 {
 	GENERATED_BODY()
@@ -39,5 +39,5 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
 		bool StartUDPReceiver(const FString& SocketName, const int32 Port);
 
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };
