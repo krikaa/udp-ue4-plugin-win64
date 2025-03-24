@@ -3,8 +3,8 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Networking.h"
-#include "UDPDynamicData.h"
-#include "UDPPacketDefinition.h"
+#include "UDPPacket.h"
+#include "UDPPacketStructure.h"
 #include "Serialization/Archive.h"
 #include "UDPSender.generated.h"
 
@@ -28,10 +28,6 @@ public:
 			const int32 Port
 			);
 
-	// // Sends the serialized array
-	// UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
-	// 	bool UDPSendArray(FUDPData Data);
-
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -44,12 +40,12 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
-	UUDPPacketDefinition* PacketDefinition;
+	UUDPPacketStructure* PacketStructure;
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
-	bool UDPSendDynamicData(const FUDPDynamicData& DynamicData);
+	UFUNCTION(BlueprintCallable, Category = "UDPCommunication", DisplayName = "Send UDP Data")
+	bool UDPSendPacket(const FUDPPacket& UDPPacket);
 
 	// For backward compatibility
 	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
-	FUDPDynamicData CreateDynamicData();
+	FUDPPacket CreateUDPPacket();
 };

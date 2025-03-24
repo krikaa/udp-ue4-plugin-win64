@@ -5,14 +5,14 @@
 #include "CoreMinimal.h"
 #include "UDPDataType.h"
 #include "Engine/DataAsset.h"
-#include "UDPPacketDefinition.generated.h"
+#include "UDPPacketStructure.generated.h"
 
 /**
  * 
  */
 
 USTRUCT(BlueprintType)
-struct UDPCOMMUNICATION_API FUDPFieldDefinition
+struct UDPCOMMUNICATION_API FUDPField
 {
 	GENERATED_BODY()
 
@@ -30,13 +30,13 @@ struct UDPCOMMUNICATION_API FUDPFieldDefinition
 };
 
 UCLASS()
-class UDPCOMMUNICATION_API UUDPPacketDefinition : public UDataAsset
+class UDPCOMMUNICATION_API UUDPPacketStructure : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
-	TArray<FUDPFieldDefinition> Fields;
+	TArray<FUDPField> Fields;
 
 	// Compiled packet data for runtime optimization
 	UPROPERTY(Transient)
@@ -48,7 +48,7 @@ public:
 	UPROPERTY(Transient)
 	int32 PacketSize;
 
-	UUDPPacketDefinition();
+	UUDPPacketStructure();
     
 	virtual void PostLoad() override;
 	void CompileStructure();

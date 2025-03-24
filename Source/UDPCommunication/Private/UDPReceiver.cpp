@@ -74,38 +74,38 @@ bool UUDPReceiver::IsNewDataReady()
 	return GotNewData;
 }
 
-void UUDPReceiver::ArchiveDynamic(const FArrayReaderPtr& ArrayReaderPtr)
+void UUDPReceiver::ArchivePacket(const FArrayReaderPtr& ArrayReaderPtr)
 {
-	FUDPDynamicData DynamicData;
-	*ArrayReaderPtr << DynamicData;
+	FUDPPacket UDPPacket;
+	*ArrayReaderPtr << UDPPacket;
     
-	// Assign the definition if not already assigned
-	if (!DynamicData.Definition && PacketDefinition)
+	// Assign the structure if not already assigned
+	if (!UDPPacket.Structure && PacketStructure)
 	{
-		DynamicData.Definition = PacketDefinition;
+		UDPPacket.Structure = PacketStructure;
 	}
     
-	UpdateDynamicData(DynamicData);
+	UpdateUDPPacket(UDPPacket);
 }
 
-void UUDPReceiver::UpdateDynamicData(const FUDPDynamicData& DynamicData)
+void UUDPReceiver::UpdateUDPPacket(const FUDPPacket& UDPPacket)
 {
-	ReceivedDynamicData = DynamicData;
+	ReceivedUDPData = UDPPacket;
 }
 
-FUDPDynamicData UUDPReceiver::GetDynamicData()
+FUDPPacket UUDPReceiver::GetUDPPacket()
 {
 	UpdateInterest = true;
 	GotNewData = false;
-	return ReceivedDynamicData;
+	return ReceivedUDPData;
 }
 
 // Modify the Archive method to handle both legacy and dynamic data
 void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
 {
-	if (PacketDefinition)
+	if (PacketStructure)
 	{
-		ArchiveDynamic(ArrayReaderPtr);
+		ArchivePacket(ArrayReaderPtr);
 	}
 	// else
 	// {

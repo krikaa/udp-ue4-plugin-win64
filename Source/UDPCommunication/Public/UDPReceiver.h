@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Networking.h"
-#include "UDPDynamicData.h"
-#include "UDPPacketDefinition.h"
+#include "UDPPacket.h"
+#include "UDPPacketStructure.h"
 #include "UDPReceiver.generated.h"
 
 /**
@@ -43,15 +43,15 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
-	UUDPPacketDefinition* PacketDefinition;
+	UUDPPacketStructure* PacketStructure;
 
 	UPROPERTY(BlueprintReadOnly, Category = "UDPCommunication")
-	FUDPDynamicData ReceivedDynamicData;
+	FUDPPacket ReceivedUDPData;
 
 	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
-	FUDPDynamicData GetDynamicData();
+	FUDPPacket GetUDPPacket();
 
 protected:
-	void UpdateDynamicData(const FUDPDynamicData& DynamicData);
-	void ArchiveDynamic(const FArrayReaderPtr& ArrayReaderPtr);
+	void UpdateUDPPacket(const FUDPPacket& UDPPacket);
+	void ArchivePacket(const FArrayReaderPtr& ArrayReaderPtr);
 };

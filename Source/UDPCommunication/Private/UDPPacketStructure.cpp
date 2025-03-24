@@ -1,9 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UDPPacketDefinition.h"
+#include "UDPPacketStructure.h"
 
-int32 FUDPFieldDefinition::GetFieldSize() const
+int32 FUDPField::GetFieldSize() const
 {
 	switch (DataType)
 	{
@@ -15,7 +15,7 @@ int32 FUDPFieldDefinition::GetFieldSize() const
 	}
 }
 
-int32 FUDPFieldDefinition::GetFieldAlignment() const
+int32 FUDPField::GetFieldAlignment() const
 {
 	switch (DataType)
 	{
@@ -27,18 +27,18 @@ int32 FUDPFieldDefinition::GetFieldAlignment() const
 	}
 }
 
-UUDPPacketDefinition::UUDPPacketDefinition()
+UUDPPacketStructure::UUDPPacketStructure()
 {
 	PacketSize = 0;
 }
 
-void UUDPPacketDefinition::PostLoad()
+void UUDPPacketStructure::PostLoad()
 {
 	Super::PostLoad();
 	CompileStructure();
 }
 
-void UUDPPacketDefinition::CompileStructure()
+void UUDPPacketStructure::CompileStructure()
 {
 	FieldOffsets.Empty();
 	FieldTypes.Empty();
@@ -46,7 +46,7 @@ void UUDPPacketDefinition::CompileStructure()
 	int32 CurrentOffset = 0;
     
 	// First pass: calculate offsets with proper alignment
-	for (const FUDPFieldDefinition& Field : Fields)
+	for (const FUDPField& Field : Fields)
 	{
 		int32 Alignment = Field.GetFieldAlignment();
 		// Align the current offset
@@ -62,12 +62,12 @@ void UUDPPacketDefinition::CompileStructure()
 	PacketSize = CurrentOffset;
 }
 
-int32 UUDPPacketDefinition::GetFieldOffset(const FString& FieldName) const
+int32 UUDPPacketStructure::GetFieldOffset(const FString& FieldName) const
 {
 	return FieldOffsets.Contains(FieldName) ? FieldOffsets[FieldName] : -1;
 }
 
-EUDPDataType UUDPPacketDefinition::GetFieldType(const FString& FieldName) const
+EUDPDataType UUDPPacketStructure::GetFieldType(const FString& FieldName) const
 {
 	return FieldTypes.Contains(FieldName) ? FieldTypes[FieldName] : EUDPDataType::Float;
 }

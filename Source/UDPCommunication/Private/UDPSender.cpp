@@ -83,7 +83,7 @@ bool UUDPSender::StartUDPSender(const FString& SocketName, const FString& IpAddr
 // 	return true;
 // }
 
-bool UUDPSender::UDPSendDynamicData(const FUDPDynamicData& DynamicData)
+bool UUDPSender::UDPSendPacket(const FUDPPacket& UDPPacket)
 {
 	if (!SenderSocket)
 	{
@@ -91,9 +91,9 @@ bool UUDPSender::UDPSendDynamicData(const FUDPDynamicData& DynamicData)
 		return false;
 	}
     
-	if (!DynamicData.Definition || DynamicData.Data.Num() == 0)
+	if (!UDPPacket.Structure || UDPPacket.Data.Num() == 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid dynamic data to send."));
+		UE_LOG(LogTemp, Error, TEXT("Invalid UDP packet to send."));
 		return false;
 	}
     
@@ -101,11 +101,11 @@ bool UUDPSender::UDPSendDynamicData(const FUDPDynamicData& DynamicData)
 
 	// Serialize the data with the array length in front
 	// FArrayWriter Writer;
-	// Writer << const_cast<FUDPDynamicData&>(DynamicData);
+	// Writer << const_cast<FUDPPacket&>(UDPPacket);
 	// SenderSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteAddr);
 	
 	// Serialize the data without the array length in front
-	SenderSocket->SendTo(DynamicData.Data.GetData(), DynamicData.Data.Num(), BytesSent, *RemoteAddr);
+	SenderSocket->SendTo(UDPPacket.Data.GetData(), UDPPacket.Data.Num(), BytesSent, *RemoteAddr);
 	
 	if (BytesSent <= 0)
 	{
@@ -116,14 +116,14 @@ bool UUDPSender::UDPSendDynamicData(const FUDPDynamicData& DynamicData)
 	return true;
 }
 
-FUDPDynamicData UUDPSender::CreateDynamicData()
+FUDPPacket UUDPSender::CreateUDPPacket()
 {
-	FUDPDynamicData DynamicData;
-	if (PacketDefinition)
+	FUDPPacket UDPPacket;
+	if (PacketStructure)
 	{
-		DynamicData.InitWithDefinition(PacketDefinition);
+		UDPPacket.InitWithStructure(PacketStructure);
 	}
-	return DynamicData;
+	return UDPPacket;
 }
 
 void UUDPSender::EndPlay(const EEndPlayReason::Type EndPlayReason)

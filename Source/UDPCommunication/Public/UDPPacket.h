@@ -1,12 +1,12 @@
 ﻿#pragma once
 
-#include "UDPPacketDefinition.h"
+#include "UDPPacketStructure.h"
 #include "Serialization/Archive.h"
-#include "UDPDynamicData.generated.h"
+#include "UDPPacket.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct UDPCOMMUNICATION_API FUDPDynamicData
+struct UDPCOMMUNICATION_API FUDPPacket
 {
 	GENERATED_BODY()
 
@@ -14,11 +14,11 @@ struct UDPCOMMUNICATION_API FUDPDynamicData
 	TArray<uint8> Data;
     
 	UPROPERTY(Transient)
-	UUDPPacketDefinition* Definition;
+	UUDPPacketStructure* Structure;
 
-	FUDPDynamicData();
+	FUDPPacket();
     
-	void InitWithDefinition(UUDPPacketDefinition* InDefinition);
+	void InitWithStructure(UUDPPacketStructure* InitStructure);
     
 	// Value setters
 	void SetFloat(const FString& FieldName, float Value);
@@ -34,8 +34,8 @@ struct UDPCOMMUNICATION_API FUDPDynamicData
 };
 
 // Serialization operator
-FORCEINLINE FArchive& operator<<(FArchive& Ar, FUDPDynamicData& DynamicData)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, FUDPPacket& UDPPacket)
 {
-	Ar << DynamicData.Data;
+	Ar << UDPPacket.Data;
 	return Ar;
 }

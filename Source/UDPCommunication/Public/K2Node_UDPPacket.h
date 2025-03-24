@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "K2Node.h"
-#include "UDPPacketDefinition.h"
+#include "UDPPacketStructure.h"
 #include "KismetCompiler.h"
 #include "BlueprintNodeSpawner.h"
 #include "EditorCategoryUtils.h"
@@ -18,7 +18,7 @@
 #include "K2Node_VariableGet.h"
 #include "K2Node_VariableSet.h"
 #include "UDPSender.h"
-#include "UDPDynamicDataLibrary.h"
+#include "UDPPacketLibrary.h"
 #include "K2Node_ExecutionSequence.h"
 #include "K2Node_UDPPacket.generated.h"
 
@@ -30,16 +30,13 @@ class UDPCOMMUNICATION_API UK2Node_CreateUDPPacket : public UK2Node
 {
 	GENERATED_BODY()
 public:
-	// Remove the property since we're using a pin instead
-	// UPROPERTY(EditAnywhere, Category = "UDPCommunication")
-	// UUDPPacketDefinition* PacketDefinition;
 
 	// Pin name constants
 	static const FName PIN_SenderName;
-	static const FName PIN_PacketDefName;
+	static const FName PIN_PacketStructName;
 	static const FName PIN_OutputName;
 
-	void CreateFieldPins(UUDPPacketDefinition* PacketDef);
+	void CreateFieldPins(UUDPPacketStructure* PacketStruct);
 
 	// UEdGraphNode interface
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
