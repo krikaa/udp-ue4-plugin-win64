@@ -34,8 +34,58 @@ struct UDPCOMMUNICATION_API FUDPPacket
 };
 
 // Serialization operator
-FORCEINLINE FArchive& operator<<(FArchive& Ar, FUDPPacket& UDPPacket)
+FORCEINLINE FArchive& operator<<(FArchive& Ar, FUDPPacket& Packet)
 {
-	Ar << UDPPacket.Data;
-	return Ar;
+    if (Ar.IsLoading())
+    {
+        // When loading (deserializing), make sure we read the data properly
+        Ar << Packet.Data;
+    }
+    else
+    {
+        // When saving (serializing), we need to handle variable-length strings
+        if (Packet.Structure)
+        {
+            TArray<uint8> SerializedData = Packet.Data;
+            
+            // For each field, check if it's a string and if so, adjust the data
+            for (const FUDPField& Field : Packet.Structure->Fields)
+            {
+                if (Field.DataType == EUDPDataType::String)
+                {
+                    int32 Offset = Packet.Structure->GetFieldOffset(Field.Name);
+                    if (Offset >= 0)
+                    {
+                        // Read the string length
+                        int32 Length = 0;
+                        FMemory::Memcpy(&Length, Packet.Data.GetData() + Offset, sizeof(int32));
+                        
+                        // We only need to include actual string length in the final packet
+                        // Not the max length that's reserved
+                        int32 StringSize = sizeof(int32) + Length;
+                        
+                        // Rest of packet data after this string
+                        int32 NextFieldStart = Offset + sizeof(int32) + Field.MaxLength;
+                        
+                        // Adjust the serialized data - remove any padding that isn't needed
+                        if (NextFieldStart < SerializedData.Num())
+                        {
+                            int32 BytesToRemove = Field.MaxLength - Length;
+                            SerializedData.RemoveAt(Offset + StringSize, BytesToRemove);
+                        }
+                    }
+                }
+            }
+            
+            // Send the optimized data
+            Ar << SerializedData;
+        }
+        else
+        {
+            // No structure, just send as is
+            Ar << Packet.Data;
+        }
+    }
+    
+    return Ar;
 }

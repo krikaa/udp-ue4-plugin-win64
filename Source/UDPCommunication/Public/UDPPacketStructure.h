@@ -22,8 +22,9 @@ struct UDPCOMMUNICATION_API FUDPField
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
 	EUDPDataType DataType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
-	int32 ArraySize = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication", 
+		meta = (ClampMin = "1", ClampMax = "502", UIMin = "1", UIMax = "502", EditCondition = "DataType==EUDPDataType::String", EditConditionHides))
+	int32 MaxLength = 128;
     
 	int32 GetFieldSize() const;
 	int32 GetFieldAlignment() const;

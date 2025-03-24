@@ -5,14 +5,26 @@
 
 int32 FUDPField::GetFieldSize() const
 {
-	switch (DataType)
-	{
-	case EUDPDataType::Float: return sizeof(float) * FMath::Max(1, ArraySize);
-	case EUDPDataType::Int: return sizeof(int32) * FMath::Max(1, ArraySize);
-	case EUDPDataType::Bool: return sizeof(bool) * FMath::Max(1, ArraySize);
-	case EUDPDataType::String: return sizeof(int32) + (128 * FMath::Max(1, ArraySize)); // Size + chars
-	default: return 0;
-	}
+    switch (DataType)
+    {
+    case EUDPDataType::Float: return sizeof(float);
+    case EUDPDataType::Int: return sizeof(int32);
+    // case EUDPDataType::Byte: return sizeof(uint8);
+    case EUDPDataType::Bool: return sizeof(bool);
+    case EUDPDataType::String: return sizeof(int32) + MaxLength;
+    // case EUDPDataType::Vector: return sizeof(FVector);
+    // case EUDPDataType::Vector2D: return sizeof(FVector2D);
+    // case EUDPDataType::Rotator: return sizeof(FRotator);
+    // case EUDPDataType::Quat: return sizeof(FQuat);
+    // case EUDPDataType::Color: return sizeof(FColor);
+    // case EUDPDataType::UInt16: return sizeof(uint16);
+    // case EUDPDataType::UInt32: return sizeof(uint32);
+    // case EUDPDataType::UInt64: return sizeof(uint64);
+    // case EUDPDataType::Int64: return sizeof(int64);
+    // case EUDPDataType::Double: return sizeof(double);
+    	
+    default: return 0;
+    }
 }
 
 int32 FUDPField::GetFieldAlignment() const
@@ -42,22 +54,30 @@ void UUDPPacketStructure::CompileStructure()
 {
 	FieldOffsets.Empty();
 	FieldTypes.Empty();
-    
+
 	int32 CurrentOffset = 0;
-    
+	int32 FieldCounter = 1;
+
 	// First pass: calculate offsets with proper alignment
-	for (const FUDPField& Field : Fields)
+	for (FUDPField& Field : Fields)
 	{
+		// Auto-name empty fields (Field 1, Field 2, etc.)
+		if (Field.Name.IsEmpty())
+		{
+			Field.Name = FString::Printf(TEXT("Field %d"), FieldCounter);
+		}
+		FieldCounter++;
+
 		int32 Alignment = Field.GetFieldAlignment();
 		// Align the current offset
 		CurrentOffset = (CurrentOffset + Alignment - 1) & ~(Alignment - 1);
-        
+
 		FieldOffsets.Add(Field.Name, CurrentOffset);
 		FieldTypes.Add(Field.Name, Field.DataType);
-        
+
 		CurrentOffset += Field.GetFieldSize();
 	}
-    
+
 	// Store the final size
 	PacketSize = CurrentOffset;
 }

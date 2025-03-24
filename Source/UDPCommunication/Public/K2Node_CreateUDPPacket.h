@@ -7,20 +7,11 @@
 #include "UDPPacketStructure.h"
 #include "KismetCompiler.h"
 #include "BlueprintNodeSpawner.h"
-#include "EditorCategoryUtils.h"
 #include "BlueprintActionDatabaseRegistrar.h"
 #include "K2Node_CallFunction.h"
-#include "K2Node_IfThenElse.h"
-#include "Kismet2/BlueprintEditorUtils.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "K2Node_AssignmentStatement.h"
-#include "K2Node_TemporaryVariable.h"
-#include "K2Node_VariableGet.h"
-#include "K2Node_VariableSet.h"
-#include "UDPSender.h"
 #include "UDPPacketLibrary.h"
-#include "K2Node_ExecutionSequence.h"
-#include "K2Node_UDPPacket.generated.h"
+#include "K2Node_CreateUDPPacket.generated.h"
 
 /**
  * 
