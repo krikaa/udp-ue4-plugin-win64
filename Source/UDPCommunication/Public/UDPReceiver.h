@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Networking.h"
-#include "UDPData.h"
+#include "UDPDynamicData.h"
+#include "UDPPacketDefinition.h"
 #include "UDPReceiver.generated.h"
 
 /**
@@ -17,21 +18,21 @@ class UDPCOMMUNICATION_API UUDPReceiver : public UActorComponent
 	GENERATED_BODY()
 	
 public:
-	FUDPData ReceivedData;
+	// FUDPData ReceivedData;
 	bool UpdateInterest = true;
 	bool GotNewData = false;
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "UDPCommunication")
-		void BPEvent_DataReceived(const FUDPData& Data);
+	// UFUNCTION(BlueprintImplementableEvent, Category = "UDPCommunication")
+	// 	void BPEvent_DataReceived(const FUDPData& Data);
 
 	FSocket* ListenSocket;
 	FUdpSocketReceiver* Receiver = nullptr;
 	void Receive(const FArrayReaderPtr& ArrayReaderPtr, const FIPv4Endpoint& Endpoint);
 	virtual void Archive(const FArrayReaderPtr& ArrayReaderPtr);
-	virtual void UpdateReceiverData(FUDPData Data);
+	// virtual void UpdateReceiverData(FUDPData Data);
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
-		FUDPData GetData();
+	// UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	// 	FUDPData GetData();
 
 	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
 		bool IsNewDataReady();
@@ -40,4 +41,17 @@ public:
 		bool StartUDPReceiver(const FString& SocketName, const int32 Port);
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
+	UUDPPacketDefinition* PacketDefinition;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UDPCommunication")
+	FUDPDynamicData ReceivedDynamicData;
+
+	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	FUDPDynamicData GetDynamicData();
+
+protected:
+	void UpdateDynamicData(const FUDPDynamicData& DynamicData);
+	void ArchiveDynamic(const FArrayReaderPtr& ArrayReaderPtr);
 };

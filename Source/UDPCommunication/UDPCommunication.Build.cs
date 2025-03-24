@@ -31,10 +31,24 @@ public class UDPCommunication : ModuleRules
 				"InputCore",
 				"Networking",
 				"Sockets",
+				"KismetCompiler",
+				"BlueprintGraph",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
-			
+
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"UnrealEd",
+					"GraphEditor",
+					"KismetCompiler", 
+					"BlueprintGraph",
+				}
+			);
+		}
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]

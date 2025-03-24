@@ -61,26 +61,64 @@ bool UUDPSender::StartUDPSender(const FString& SocketName, const FString& IpAddr
 	return true;
 }
 
-bool UUDPSender::UDPSendArray(FUDPData Data)
+// bool UUDPSender::UDPSendArray(FUDPData Data)
+// {
+// 	if (!SenderSocket)
+// 	{
+// 		UE_LOG(LogTemp, Log, TEXT("There is no socket."));
+// 		return false;
+// 	}
+// 	int32 BytesSent = 0;
+//
+// 	FArrayWriter Writer;
+// 	Writer << Data;
+// 	SenderSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteAddr);
+//
+// 	if (BytesSent <= 0)
+// 	{
+// 		UE_LOG(LogTemp, Error, TEXT("Socket exists , but receiver did not accept any packets."));
+// 		return false;
+// 	}
+//
+// 	return true;
+// }
+
+bool UUDPSender::UDPSendDynamicData(const FUDPDynamicData& DynamicData)
 {
 	if (!SenderSocket)
 	{
 		UE_LOG(LogTemp, Log, TEXT("There is no socket."));
 		return false;
 	}
+    
+	if (!DynamicData.Definition || DynamicData.Data.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid dynamic data to send."));
+		return false;
+	}
+    
 	int32 BytesSent = 0;
-
 	FArrayWriter Writer;
-	Writer << Data;
+	Writer << const_cast<FUDPDynamicData&>(DynamicData);
 	SenderSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteAddr);
 
 	if (BytesSent <= 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Socket exists , but receiver did not accept any packets."));
+		UE_LOG(LogTemp, Error, TEXT("Socket exists, but receiver did not accept any packets."));
 		return false;
 	}
 
 	return true;
+}
+
+FUDPDynamicData UUDPSender::CreateDynamicData()
+{
+	FUDPDynamicData DynamicData;
+	if (PacketDefinition)
+	{
+		DynamicData.InitWithDefinition(PacketDefinition);
+	}
+	return DynamicData;
 }
 
 void UUDPSender::EndPlay(const EEndPlayReason::Type EndPlayReason)

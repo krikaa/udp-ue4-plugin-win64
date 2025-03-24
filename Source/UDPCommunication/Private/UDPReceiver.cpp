@@ -48,28 +48,70 @@ void UUDPReceiver::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
-void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
-{
-	FUDPData Data;
-	*ArrayReaderPtr << Data;
-	
-	// Class Parameter Update function to set object ready for a query from blueprint
-	UpdateReceiverData(Data);
-}
+// void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
+// {
+// 	FUDPData Data;
+// 	*ArrayReaderPtr << Data;
+// 	
+// 	// Class Parameter Update function to set object ready for a query from blueprint
+// 	UpdateReceiverData(Data);
+// }
 
-void UUDPReceiver::UpdateReceiverData(FUDPData Data)
-{
-	ReceivedData = Data;
-}
+// void UUDPReceiver::UpdateReceiverData(FUDPData Data)
+// {
+// 	ReceivedData = Data;
+// }
 
-FUDPData UUDPReceiver::GetData()
-{
-	UpdateInterest = true; // Ready for new data
-	GotNewData = false;
-	return ReceivedData;
-}
+// FUDPData UUDPReceiver::GetData()
+// {
+// 	UpdateInterest = true; // Ready for new data
+// 	GotNewData = false;
+// 	return ReceivedData;
+// }
 
 bool UUDPReceiver::IsNewDataReady()
 {
 	return GotNewData;
+}
+
+void UUDPReceiver::ArchiveDynamic(const FArrayReaderPtr& ArrayReaderPtr)
+{
+	FUDPDynamicData DynamicData;
+	*ArrayReaderPtr << DynamicData;
+    
+	// Assign the definition if not already assigned
+	if (!DynamicData.Definition && PacketDefinition)
+	{
+		DynamicData.Definition = PacketDefinition;
+	}
+    
+	UpdateDynamicData(DynamicData);
+}
+
+void UUDPReceiver::UpdateDynamicData(const FUDPDynamicData& DynamicData)
+{
+	ReceivedDynamicData = DynamicData;
+}
+
+FUDPDynamicData UUDPReceiver::GetDynamicData()
+{
+	UpdateInterest = true;
+	GotNewData = false;
+	return ReceivedDynamicData;
+}
+
+// Modify the Archive method to handle both legacy and dynamic data
+void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
+{
+	if (PacketDefinition)
+	{
+		ArchiveDynamic(ArrayReaderPtr);
+	}
+	// else
+	// {
+	// 	// Legacy support
+	// 	FUDPData Data;
+	// 	*ArrayReaderPtr << Data;
+	// 	UpdateReceiverData(Data);
+	// }
 }
