@@ -24,6 +24,12 @@ void UUDPDynamicDataLibrary::InitWithDefinition(UPARAM(ref) FUDPDynamicData& Dyn
 		   *Definition->GetName(), Definition->PacketSize);
 }
 
+// In UUDPDynamicDataLibrary.cpp
+FUDPDynamicData UUDPDynamicDataLibrary::CreateDynamicData()
+{
+	return FUDPDynamicData();
+}
+
 void UUDPDynamicDataLibrary::SetFloat(FUDPDynamicData& DynamicData, const FString& FieldName, float Value)
 {
 	DynamicData.SetFloat(FieldName, Value);

@@ -6,7 +6,6 @@
 #define LOCTEXT_NAMESPACE "K2Node_UDPPacket"
 
 // Input pin names
-const FName UK2Node_CreateUDPPacket::PIN_SenderName(TEXT("UDPSender"));
 const FName UK2Node_CreateUDPPacket::PIN_PacketDefName(TEXT("PacketDefinition"));
 const FName UK2Node_CreateUDPPacket::PIN_OutputName(TEXT("DynamicData"));
 
@@ -20,10 +19,7 @@ void UK2Node_CreateUDPPacket::AllocateDefaultPins()
     // Create execution pins
     CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Execute);
     CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Exec, UEdGraphSchema_K2::PN_Then);
-
-    // Create the UDPSender input pin
-    CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UUDPSender::StaticClass(), PIN_SenderName);
-
+    
     // Create the PacketDefinition input pin
     CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UUDPPacketDefinition::StaticClass(), PIN_PacketDefName);
 
@@ -41,7 +37,6 @@ void UK2Node_CreateUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext
     // Find our pins
     UEdGraphPin* ExecPin = FindPinChecked(UEdGraphSchema_K2::PN_Execute);
     UEdGraphPin* ThenPin = FindPinChecked(UEdGraphSchema_K2::PN_Then);
-    UEdGraphPin* SenderPin = FindPinChecked(PIN_SenderName);
     UEdGraphPin* PacketDefPin = FindPinChecked(PIN_PacketDefName);
     UEdGraphPin* OutputPin = FindPinChecked(PIN_OutputName);
 
@@ -79,17 +74,13 @@ void UK2Node_CreateUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext
     // Connect the execution flow start
     CompilerContext.MovePinLinksToIntermediate(*ExecPin, *DebugNode->GetExecPin());
 
-    // Create call to CreateDynamicData
     UK2Node_CallFunction* CreateDataNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-    CreateDataNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UUDPSender, CreateDynamicData), UUDPSender::StaticClass());
+    CreateDataNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UUDPDynamicDataLibrary, CreateDynamicData), UUDPDynamicDataLibrary::StaticClass());
     CreateDataNode->AllocateDefaultPins();
 
     // Connect debug node to create data node
     DebugNode->GetThenPin()->MakeLinkTo(CreateDataNode->GetExecPin());
-
-    // Connect sender to create data node
-    CompilerContext.MovePinLinksToIntermediate(*SenderPin, *CreateDataNode->FindPinChecked(TEXT("self")));
-
+    
     // Create call to InitWithDefinition
     UK2Node_CallFunction* InitDefNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
     InitDefNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UUDPDynamicDataLibrary, InitWithDefinition), UUDPDynamicDataLibrary::StaticClass());
@@ -313,7 +304,6 @@ void UK2Node_CreateUDPPacket::CreateFieldPins(UUDPPacketDefinition* PacketDef)
         // Exclude standard pins
         if (ExistingPin->PinName != UEdGraphSchema_K2::PN_Execute &&
             ExistingPin->PinName != UEdGraphSchema_K2::PN_Then &&
-            ExistingPin->PinName != PIN_SenderName &&
             ExistingPin->PinName != PIN_PacketDefName &&
             ExistingPin->PinName != PIN_OutputName)
         {

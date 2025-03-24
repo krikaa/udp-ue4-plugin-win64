@@ -18,6 +18,9 @@ class UDPCOMMUNICATION_API UUDPDynamicDataLibrary : public UBlueprintFunctionLib
 public:
 	UFUNCTION(BlueprintCallable, Category = "UDP|Dynamic Data")
 	static void InitWithDefinition(UPARAM(ref) FUDPDynamicData& DynamicData, UUDPPacketDefinition* Definition);
+
+	UFUNCTION(BlueprintCallable, Category = "UDP Communication")
+	static FUDPDynamicData CreateDynamicData();
 	
 	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
 	static void SetFloat(UPARAM(ref) FUDPDynamicData& DynamicData, const FString& FieldName, float Value);
