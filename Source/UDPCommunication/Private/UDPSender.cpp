@@ -98,10 +98,15 @@ bool UUDPSender::UDPSendDynamicData(const FUDPDynamicData& DynamicData)
 	}
     
 	int32 BytesSent = 0;
-	FArrayWriter Writer;
-	Writer << const_cast<FUDPDynamicData&>(DynamicData);
-	SenderSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteAddr);
 
+	// Serialize the data with the array length in front
+	// FArrayWriter Writer;
+	// Writer << const_cast<FUDPDynamicData&>(DynamicData);
+	// SenderSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteAddr);
+	
+	// Serialize the data without the array length in front
+	SenderSocket->SendTo(DynamicData.Data.GetData(), DynamicData.Data.Num(), BytesSent, *RemoteAddr);
+	
 	if (BytesSent <= 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Socket exists, but receiver did not accept any packets."));

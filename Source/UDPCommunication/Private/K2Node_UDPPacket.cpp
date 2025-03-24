@@ -53,6 +53,21 @@ void UK2Node_CreateUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext
         return;
     }
 
+    // Get the packet definition to find field pins
+    UUDPPacketDefinition* PacketDef = nullptr;
+    if (PacketDefPin->LinkedTo.Num() > 0)
+    {
+        UEdGraphPin* LinkedPin = PacketDefPin->LinkedTo[0];
+        if (LinkedPin && LinkedPin->DefaultObject)
+        {
+            PacketDef = Cast<UUDPPacketDefinition>(LinkedPin->DefaultObject);
+        }
+    }
+    else if (PacketDefPin->DefaultObject)
+    {
+        PacketDef = Cast<UUDPPacketDefinition>(PacketDefPin->DefaultObject);
+    }
+
     // Debug print node
     UK2Node_CallFunction* DebugNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
     DebugNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UKismetSystemLibrary, PrintString), UKismetSystemLibrary::StaticClass());
@@ -82,7 +97,7 @@ void UK2Node_CreateUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext
 
     // Connect execution flow
     CreateDataNode->GetThenPin()->MakeLinkTo(InitDefNode->GetExecPin());
-    
+
     // Connect create data output directly to init function input
     UEdGraphPin* DynamicDataPin = InitDefNode->FindPin(TEXT("DynamicData"));
     if (!DynamicDataPin)
@@ -103,22 +118,86 @@ void UK2Node_CreateUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext
     }
     CompilerContext.MovePinLinksToIntermediate(*PacketDefPin, *DefinitionPin);
 
-    // Connect output directly from the dynamic data
-    UEdGraphPin* ReturnValuePin = InitDefNode->FindPin(TEXT("ReturnValue"));
-    if (ReturnValuePin)
+    // Last execution node in the chain - we'll add to this for each field
+    UEdGraphNode* LastNode = InitDefNode;
+
+    // Process field values if we have a packet definition
+    if (PacketDef)
     {
-        // If the function returns a value, use it
-        CompilerContext.MovePinLinksToIntermediate(*OutputPin, *ReturnValuePin);
-    }
-    else 
-    {
-        // If the function modifies the input parameter (no return value),
-        // connect the input directly to the output
-        CompilerContext.MovePinLinksToIntermediate(*OutputPin, *CreateDataNode->GetReturnValuePin());
+        for (const FUDPFieldDefinition& Field : PacketDef->Fields)
+        {
+            // Find the input pin for this field
+            UEdGraphPin* FieldPin = FindPin(FName(*Field.Name));
+            if (!FieldPin)
+            {
+                continue;
+            }
+
+            // Create a node to set this field value
+            UK2Node_CallFunction* SetValueNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+            
+            // Choose the appropriate "Set" function based on data type
+            FName FunctionName;
+            switch (Field.DataType)
+            {
+            case EUDPDataType::Float:
+                FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPDynamicDataLibrary, SetFloat);
+                break;
+            case EUDPDataType::Int:
+                FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPDynamicDataLibrary, SetInt);
+                break;
+            case EUDPDataType::Bool:
+                FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPDynamicDataLibrary, SetBool);
+                break;
+            case EUDPDataType::String:
+                FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPDynamicDataLibrary, SetString);
+                break;
+            default:
+                continue;
+            }
+
+            SetValueNode->FunctionReference.SetExternalMember(FunctionName, UUDPDynamicDataLibrary::StaticClass());
+            SetValueNode->AllocateDefaultPins();
+
+            // Connect execution flow
+            LastNode->FindPinChecked(UEdGraphSchema_K2::PN_Then)->MakeLinkTo(SetValueNode->GetExecPin());
+            LastNode = SetValueNode;
+
+            // Connect DynamicData to the set function
+            UEdGraphPin* SetDataPin = SetValueNode->FindPin(TEXT("DynamicData"));
+            if (SetDataPin)
+            {
+                // Connect from the output of CreateDynamicData
+                CreateDataNode->GetReturnValuePin()->MakeLinkTo(SetDataPin);
+            }
+
+            // Connect field name
+            UEdGraphPin* FieldNamePin = SetValueNode->FindPin(TEXT("FieldName"));
+            if (FieldNamePin)
+            {
+                FieldNamePin->DefaultValue = Field.Name;
+            }
+
+            // Connect field value
+            UEdGraphPin* ValuePin = SetValueNode->FindPin(TEXT("Value"));
+            if (ValuePin)
+            {
+                CompilerContext.MovePinLinksToIntermediate(*FieldPin, *ValuePin);
+                
+                // If there's no connection, set the default value
+                if (ValuePin->LinkedTo.Num() == 0 && !FieldPin->DefaultValue.IsEmpty())
+                {
+                    ValuePin->DefaultValue = FieldPin->DefaultValue;
+                }
+            }
+        }
     }
 
-    // Connect the then pin
-    CompilerContext.MovePinLinksToIntermediate(*ThenPin, *InitDefNode->GetThenPin());
+    // Connect output directly from the dynamic data
+    CompilerContext.MovePinLinksToIntermediate(*OutputPin, *CreateDataNode->GetReturnValuePin());
+
+    // Connect the then pin to the last node in our chain
+    CompilerContext.MovePinLinksToIntermediate(*ThenPin, *LastNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
 
     // Break all links at the end
     BreakAllNodeLinks();
