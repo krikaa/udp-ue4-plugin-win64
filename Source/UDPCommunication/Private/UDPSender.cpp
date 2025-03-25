@@ -118,12 +118,13 @@ bool UUDPSender::UDPSendPacket(const FUDPPacket& UDPPacket)
 
 FUDPPacket UUDPSender::CreateUDPPacket()
 {
-	FUDPPacket UDPPacket;
-	if (PacketStructure)
-	{
-		UDPPacket.InitWithStructure(PacketStructure);
-	}
-	return UDPPacket;
+	// FUDPPacket UDPPacket;
+	// if (PacketStructure)
+	// {
+	// 	UDPPacket.InitWithStructure(PacketStructure);
+	// }
+	// return UDPPacket;
+	return FUDPPacket();
 }
 
 void UUDPSender::EndPlay(const EEndPlayReason::Type EndPlayReason)

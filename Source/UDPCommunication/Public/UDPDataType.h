@@ -4,7 +4,7 @@
 #include "UDPDataType.generated.h"
 
 // Enum for declaring the types of data that will be sent/received
-UENUM(BlueprintType)
+UENUM(NotBlueprintType)
 enum class EUDPDataType : uint8
 {
 	Float   UMETA(DisplayName = "Float"),

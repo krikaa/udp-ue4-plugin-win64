@@ -42,5 +42,6 @@ public:
 	virtual void GetMenuActions(FBlueprintActionDatabaseRegistrar& ActionRegistrar) const override;
 	virtual FText GetTooltipText() const override;
 	virtual FText GetMenuCategory() const override;
+	virtual FSlateIcon GetIconAndTint(FLinearColor& OutColor) const override;
 	// End of UK2Node interface
 };

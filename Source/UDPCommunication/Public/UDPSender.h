@@ -8,7 +8,7 @@
 #include "Serialization/Archive.h"
 #include "UDPSender.generated.h"
 
-UCLASS(ClassGroup=(Communication), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(UDPCommunication), meta=(BlueprintSpawnableComponent))
 class UDPCOMMUNICATION_API UUDPSender : public UActorComponent
 {
 	GENERATED_BODY()
@@ -39,13 +39,13 @@ public:
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
-	UUDPPacketStructure* PacketStructure;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
+	// UUDPPacketStructure* PacketStructure;
 
 	UFUNCTION(BlueprintCallable, Category = "UDPCommunication", DisplayName = "Send UDP Data")
 	bool UDPSendPacket(const FUDPPacket& UDPPacket);
 
 	// For backward compatibility
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	FUDPPacket CreateUDPPacket();
 };

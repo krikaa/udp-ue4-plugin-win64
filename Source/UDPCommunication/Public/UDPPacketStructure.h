@@ -11,7 +11,7 @@
  * 
  */
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintInternalUseOnly, meta = (BlueprintSpawnableComponent = false))
 struct UDPCOMMUNICATION_API FUDPField
 {
 	GENERATED_BODY()
@@ -20,7 +20,7 @@ struct UDPCOMMUNICATION_API FUDPField
 	FString Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
-	EUDPDataType DataType;
+	EUDPDataType DataType = EUDPDataType::Float;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication", 
 		meta = (ClampMin = "1", ClampMax = "502", UIMin = "1", UIMax = "502", EditCondition = "DataType==EUDPDataType::String", EditConditionHides))

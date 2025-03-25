@@ -5,7 +5,7 @@
 #include "UDPPacket.generated.h"
 
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintInternalUseOnly, meta = (BlueprintSpawnableComponent = false))
 struct UDPCOMMUNICATION_API FUDPPacket
 {
 	GENERATED_BODY()

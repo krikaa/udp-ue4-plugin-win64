@@ -2,6 +2,8 @@
 
 #include "K2Node_CreateUDPPacket.h"
 
+#include "GraphEditorSettings.h"
+
 #define LOCTEXT_NAMESPACE "K2Node_UDPPacket"
 
 // Input pin names
@@ -215,6 +217,13 @@ FText UK2Node_CreateUDPPacket::GetTooltipText() const
 FText UK2Node_CreateUDPPacket::GetMenuCategory() const
 {
     return FText::FromString("UDPCommunication");
+}
+
+FSlateIcon UK2Node_CreateUDPPacket::GetIconAndTint(FLinearColor& OutColor) const
+{
+    static FSlateIcon Icon("EditorStyle", "GraphEditor.Function_16x");
+    OutColor = GetDefault<UGraphEditorSettings>()->FunctionCallNodeTitleColor;
+    return Icon;
 }
 
 void UK2Node_CreateUDPPacket::PinConnectionListChanged(UEdGraphPin* Pin)

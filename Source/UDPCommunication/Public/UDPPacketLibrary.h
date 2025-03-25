@@ -16,33 +16,33 @@ class UDPCOMMUNICATION_API UUDPPacketLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "UDP Communication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static void InitWithStructure(UPARAM(ref) FUDPPacket& UDPPacket, UUDPPacketStructure* Structure);
 
-	UFUNCTION(BlueprintCallable, Category = "UDP Communication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static FUDPPacket CreateUDPPacket();
 	
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static void SetFloat(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, float Value);
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static void SetInt(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, int32 Value);
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static void SetBool(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, bool Value);
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static void SetString(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const FString& Value);
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static float GetFloat(const FUDPPacket& UDPPacket, const FString& FieldName);
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static int32 GetInt(const FUDPPacket& UDPPacket, const FString& FieldName);
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static bool GetBool(const FUDPPacket& UDPPacket, const FString& FieldName);
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static FString GetString(const FUDPPacket& UDPPacket, const FString& FieldName);
 };

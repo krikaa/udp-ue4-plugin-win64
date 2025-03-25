@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS(ClassGroup=(Communication), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(UDPCommunication), meta=(BlueprintSpawnableComponent))
 class UDPCOMMUNICATION_API UUDPReceiver : public UActorComponent
 {
 	GENERATED_BODY()
