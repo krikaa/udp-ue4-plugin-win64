@@ -221,8 +221,8 @@ FText UK2Node_CreateUDPPacket::GetMenuCategory() const
 
 FSlateIcon UK2Node_CreateUDPPacket::GetIconAndTint(FLinearColor& OutColor) const
 {
-    static FSlateIcon Icon("EditorStyle", "GraphEditor.Function_16x");
-    OutColor = GetDefault<UGraphEditorSettings>()->FunctionCallNodeTitleColor;
+    static FSlateIcon Icon("EditorStyle", "GraphEditor.MakeStruct_16x");
+    OutColor = GetDefault<UGraphEditorSettings>()->ExecBranchNodeTitleColor;
     return Icon;
 }
 
