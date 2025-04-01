@@ -12,21 +12,22 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "UDPPacketLibrary.h"
 #include "GraphEditorSettings.h"
-#include "K2Node_CreateUDPPacket.generated.h"
+#include "K2Node_BreakUDPPacket.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UDPCOMMUNICATION_API UK2Node_CreateUDPPacket : public UK2Node
+class UDPCOMMUNICATION_API UK2Node_BreakUDPPacket : public UK2Node
 {
 	GENERATED_BODY()
-public:
 
+public:
+	
 	// Pin name constants
 	static const FName PIN_PacketStructName;
-	static const FName PIN_OutputName;
-
+	static const FName PIN_UDPPacketName;
+	
 	// Helper functions 
 	void CreateFieldPins(UUDPPacketStructure* PacketStruct);
 

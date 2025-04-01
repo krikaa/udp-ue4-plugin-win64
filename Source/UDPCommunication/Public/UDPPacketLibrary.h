@@ -20,6 +20,9 @@ public:
 	static void InitWithStructure(UPARAM(ref) FUDPPacket& UDPPacket, UUDPPacketStructure* Structure);
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	static void ValidateWithStructure(UPARAM(ref) FUDPPacket& UDPPacket, UUDPPacketStructure* Structure);
+	
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static FUDPPacket CreateUDPPacket();
 	
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))

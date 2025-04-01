@@ -25,8 +25,7 @@ void UK2Node_CreateUDPPacket::AllocateDefaultPins()
     CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Object, UUDPPacketStructure::StaticClass(), PIN_PacketStructName);
 
     // Create output pin (UDPPacket)
-    UEdGraphPin* OutputPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Struct, nullptr, PIN_OutputName);
-    OutputPin->PinType.PinSubCategoryObject = FUDPPacket::StaticStruct();
+    CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Struct, FUDPPacket::StaticStruct(), PIN_OutputName);
 }
 
 void UK2Node_CreateUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)

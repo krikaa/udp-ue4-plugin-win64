@@ -24,7 +24,26 @@ void UUDPPacketLibrary::InitWithStructure(UPARAM(ref) FUDPPacket& UDPPacket, UUD
 		   *Structure->GetName(), Structure->PacketSize);
 }
 
-// In UUDPPacketLibrary.cpp
+void UUDPPacketLibrary::ValidateWithStructure(UPARAM(ref) FUDPPacket& UDPPacket, UUDPPacketStructure* Structure)
+{
+	if (!Structure)
+	{
+		UE_LOG(LogTemp, Error, TEXT("InitWithStructure: Invalid packet structure"));
+		return;
+	}
+	
+	// Make sure the packet structure is compiled
+	Structure->CompileStructure();
+
+	// Set the packet structure reference
+	UDPPacket.Structure = Structure;
+    
+	// Optional: Validate packet against structure schema
+	// You could check if the packet data matches the expected structure
+    
+	return;
+}
+
 FUDPPacket UUDPPacketLibrary::CreateUDPPacket()
 {
 	return FUDPPacket();

@@ -76,13 +76,19 @@ float FUDPPacket::GetFloat(const FString& FieldName) const
     if (!Structure)
         return 0.0f;
         
-    float Result = 0.0f;
     int32 Offset = Structure->GetFieldOffset(FieldName);
-    if (Offset >= 0 && Structure->GetFieldType(FieldName) == EUDPDataType::Float)
+    if (Offset < 0 || Structure->GetFieldType(FieldName) != EUDPDataType::Float)
     {
-        FMemory::Memcpy(&Result, Data.GetData() + Offset, sizeof(float));
+        return 0.0f;
     }
-    return Result;
+
+    float Value = 0.0f;
+    if (Data.Num() >= Offset + sizeof(float))
+    {
+        FMemory::Memcpy(&Value, Data.GetData() + Offset, sizeof(float));
+    }
+
+    return Value;
 }
 
 int32 FUDPPacket::GetInt(const FString& FieldName) const

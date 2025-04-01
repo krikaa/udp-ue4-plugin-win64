@@ -77,14 +77,21 @@ bool UUDPReceiver::IsNewDataReady()
 void UUDPReceiver::ArchivePacket(const FArrayReaderPtr& ArrayReaderPtr)
 {
 	FUDPPacket UDPPacket;
-	*ArrayReaderPtr << UDPPacket;
     
+	// Get the raw data from the array reader
+	int32 ByteCount = ArrayReaderPtr->Num();
+	if (ByteCount > 0)
+	{
+		UDPPacket.Data.SetNumUninitialized(ByteCount);
+		FMemory::Memcpy(UDPPacket.Data.GetData(), ArrayReaderPtr->GetData(), ByteCount);
+	}
+
 	// Assign the structure if not already assigned
 	if (!UDPPacket.Structure && PacketStructure)
 	{
 		UDPPacket.Structure = PacketStructure;
 	}
-    
+
 	UpdateUDPPacket(UDPPacket);
 }
 
