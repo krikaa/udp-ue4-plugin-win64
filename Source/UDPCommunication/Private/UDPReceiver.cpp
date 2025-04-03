@@ -5,7 +5,7 @@
 
 void UUDPReceiver::Receive(const FArrayReaderPtr& ArrayReaderPtr, const FIPv4Endpoint& Endpoint)
 {
-	if (!&ArrayReaderPtr)
+	if (!ArrayReaderPtr.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Cannot read array, nullptr returned."));
 		return;
@@ -13,8 +13,8 @@ void UUDPReceiver::Receive(const FArrayReaderPtr& ArrayReaderPtr, const FIPv4End
 
 	GotNewData = true;
 
-	if (UpdateInterest)
-		Archive(ArrayReaderPtr);
+	//if (UpdateInterest)
+	Archive(ArrayReaderPtr);
 }
 
 bool UUDPReceiver::StartUDPReceiver(const FString& SocketName, const int32 Port)
@@ -82,12 +82,21 @@ void UUDPReceiver::ArchivePacket(const FArrayReaderPtr& ArrayReaderPtr)
 	int32 ByteCount = ArrayReaderPtr->Num();
 	if (ByteCount > 0)
 	{
+		// Resize the data array first
 		UDPPacket.Data.SetNumUninitialized(ByteCount);
+        
+		// Direct memory copy from the array reader data to our packet data
 		FMemory::Memcpy(UDPPacket.Data.GetData(), ArrayReaderPtr->GetData(), ByteCount);
+        
+		UE_LOG(LogTemp, Display, TEXT("Received UDP packet with %d bytes"), ByteCount);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Received empty UDP packet"));
 	}
 
 	// Assign the structure if not already assigned
-	if (!UDPPacket.Structure && PacketStructure)
+	if (PacketStructure)
 	{
 		UDPPacket.Structure = PacketStructure;
 	}
@@ -110,10 +119,7 @@ FUDPPacket UUDPReceiver::GetUDPPacket()
 // Modify the Archive method to handle both legacy and dynamic data
 void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
 {
-	if (PacketStructure)
-	{
-		ArchivePacket(ArrayReaderPtr);
-	}
+	ArchivePacket(ArrayReaderPtr);
 	// else
 	// {
 	// 	// Legacy support

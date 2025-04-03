@@ -32,16 +32,11 @@ void UUDPPacketLibrary::ValidateWithStructure(UPARAM(ref) FUDPPacket& UDPPacket,
 		return;
 	}
 	
-	// Make sure the packet structure is compiled
-	Structure->CompileStructure();
+	UE_LOG(LogTemp, Display, TEXT("ValidateWithStructure: Packet has %d bytes, structure has %d fields"), 
+           UDPPacket.Data.Num(), Structure->Fields.Num());
 
-	// Set the packet structure reference
-	UDPPacket.Structure = Structure;
-    
-	// Optional: Validate packet against structure schema
-	// You could check if the packet data matches the expected structure
-    
-	return;
+    // Ensure the packet has the structure reference
+    UDPPacket.Structure = Structure;
 }
 
 FUDPPacket UUDPPacketLibrary::CreateUDPPacket()

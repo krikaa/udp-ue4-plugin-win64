@@ -48,4 +48,32 @@ public:
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static FString GetString(const FUDPPacket& UDPPacket, const FString& FieldName);
+
+	UFUNCTION(BlueprintCallable, Category = "UDPCommunication|Debug")
+	static FString DumpPacketBytes(const FUDPPacket& UDPPacket)
+	{
+		FString Result = FString::Printf(TEXT("Packet Size: %d bytes\n"), UDPPacket.Data.Num());
+    
+		for (int32 i = 0; i < UDPPacket.Data.Num(); i++)
+		{
+			Result.Append(FString::Printf(TEXT("[%d] %02X "), i, UDPPacket.Data[i]));
+			if ((i + 1) % 8 == 0) Result.Append(TEXT("\n"));
+		}
+    
+		return Result;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "UDPCommunication|Debug")
+	static float DebugExtractFloat(const FUDPPacket& UDPPacket, const FString& FieldName, int32 Offset)
+	{
+		if (UDPPacket.Data.Num() < Offset + sizeof(float))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DebugExtractFloat: Not enough data"));
+			return 0.0f;
+		}
+
+		float Value = 0.0f;
+		FMemory::Memcpy(&Value, UDPPacket.Data.GetData() + Offset, sizeof(float));
+		return Value;
+	}
 };

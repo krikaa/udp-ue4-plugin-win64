@@ -2,6 +2,8 @@
 
 #include "K2Node_BreakUDPPacket.h"
 
+#include "K2Node_ExecutionSequence.h"
+
 
 #define LOCTEXT_NAMESPACE "K2Node_BreakUDPPacket"
 
@@ -200,25 +202,15 @@ void UK2Node_BreakUDPPacket::ReconstructNode()
 
 void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ExpandNode START for BreakUDPPacket"));
-
     Super::ExpandNode(CompilerContext, SourceGraph);
 
-    // Find our pins
+    // Find all pins
     UEdGraphPin* ExecPin = FindPinChecked(UEdGraphSchema_K2::PN_Execute);
     UEdGraphPin* ThenPin = FindPinChecked(UEdGraphSchema_K2::PN_Then);
     UEdGraphPin* PacketStructPin = FindPinChecked(PIN_PacketStructName);
     UEdGraphPin* UDPPacketPin = FindPinChecked(PIN_UDPPacketName);
 
-    // No packet structure provided - log error if not connected
-    if (PacketStructPin->LinkedTo.Num() == 0 && !PacketStructPin->DefaultObject)
-    {
-        CompilerContext.MessageLog.Error(*NSLOCTEXT("K2Node", "MissingPacketStructure", "No packet structure definition connected to @@").ToString(), this);
-        BreakAllNodeLinks();
-        return;
-    }
-
-    // Get the packet structure to find field pins
+    // Get the packet structure
     UUDPPacketStructure* PacketStruct = nullptr;
     if (PacketStructPin->LinkedTo.Num() > 0)
     {
@@ -233,52 +225,67 @@ void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext,
         PacketStruct = Cast<UUDPPacketStructure>(PacketStructPin->DefaultObject);
     }
 
-    // // Debug print node
-    // UK2Node_CallFunction* DebugNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-    // DebugNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UKismetSystemLibrary, PrintString), UKismetSystemLibrary::StaticClass());
-    // DebugNode->AllocateDefaultPins();
-    // DebugNode->FindPinChecked(TEXT("InString"))->DefaultValue = TEXT("UDP Packet Node Executed");
-    // DebugNode->FindPinChecked(TEXT("bPrintToScreen"))->DefaultValue = TEXT("true");
-    // DebugNode->FindPinChecked(TEXT("bPrintToLog"))->DefaultValue = TEXT("true");
-
-	// Last execution node in the chain
-	UEdGraphNode* LastNode = nullptr;
-    
-	// Set up the start of the execution chain
-	UK2Node_CallFunction* ValidateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-	ValidateNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, ValidateWithStructure), UUDPPacketLibrary::StaticClass());
-	ValidateNode->AllocateDefaultPins();
-	
-    // Connect the execution flow start
-    CompilerContext.MovePinLinksToIntermediate(*ExecPin, *ValidateNode->GetExecPin());
-
-	// Connect packet pin to validate function
-	UEdGraphPin* ValidatePacketPin = ValidateNode->FindPinChecked(TEXT("UDPPacket"));
-	CompilerContext.MovePinLinksToIntermediate(*UDPPacketPin, *ValidatePacketPin);
-    
-	// Connect structure pin to validate function
-	UEdGraphPin* ValidateStructurePin = ValidateNode->FindPinChecked(TEXT("Structure"));
-	CompilerContext.MovePinLinksToIntermediate(*PacketStructPin, *ValidateStructurePin);
-    
-	// Set last node to the validate node
-	LastNode = ValidateNode;
-
-    // Process field values if we have a packet structure
-    if (PacketStruct)
+    // No packet structure - exit early
+    if (!PacketStruct)
     {
+        CompilerContext.MessageLog.Error(*NSLOCTEXT("K2Node", "MissingPacketStructure", 
+            "No packet structure definition connected to @@").ToString(), this);
+        return;
+    }
+
+    // Create the validate node
+    UK2Node_CallFunction* ValidateNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+    ValidateNode->FunctionReference.SetExternalMember(
+        GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, ValidateWithStructure),
+        UUDPPacketLibrary::StaticClass());
+    ValidateNode->AllocateDefaultPins();
+
+    // Connect execution flow
+    CompilerContext.MovePinLinksToIntermediate(*ExecPin, *ValidateNode->GetExecPin());
+    
+    // Connect UDPPacket input
+    CompilerContext.MovePinLinksToIntermediate(*UDPPacketPin, *ValidateNode->FindPinChecked(TEXT("UDPPacket")));
+
+    // Handle packet structure
+    UEdGraphPin* ValidateStructurePin = ValidateNode->FindPinChecked(TEXT("Structure"));
+    if (PacketStructPin->LinkedTo.Num() > 0)
+    {
+        CompilerContext.MovePinLinksToIntermediate(*PacketStructPin, *ValidateStructurePin);
+    }
+    else if (PacketStructPin->DefaultObject)
+    {
+        ValidateStructurePin->DefaultObject = PacketStructPin->DefaultObject;
+    }
+
+    // Count connected field pins
+    TArray<UEdGraphPin*> ConnectedFieldPins;
+    for (const FUDPField& Field : PacketStruct->Fields)
+    {
+        UEdGraphPin* FieldPin = FindPin(FName(*Field.Name));
+        if (FieldPin && FieldPin->LinkedTo.Num() > 0)
+        {
+            ConnectedFieldPins.Add(FieldPin);
+        }
+    }
+
+    // If we have connected field pins, we need to set up a sequence
+    if (ConnectedFieldPins.Num() > 0)
+    {
+        // Create pure function nodes for all getters
+        TArray<UK2Node_CallFunction*> GetterNodes;
+        TMap<UEdGraphPin*, UK2Node_CallFunction*> FieldPinToGetterMap;
+
+        // First create all the pure getter nodes
         for (const FUDPField& Field : PacketStruct->Fields)
         {
-            // Find the input pin for this field
             UEdGraphPin* FieldPin = FindPin(FName(*Field.Name));
-            if (!FieldPin)
+            if (!FieldPin || FieldPin->LinkedTo.Num() == 0)
             {
                 continue;
             }
 
-            // Create a node to set this field value
-            UK2Node_CallFunction* GetValueNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
+            UK2Node_CallFunction* GetterNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
             
-            // Choose the appropriate "Get" function based on data type
             FName FunctionName;
             switch (Field.DataType)
             {
@@ -298,43 +305,75 @@ void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext,
                 continue;
             }
 
-            GetValueNode->FunctionReference.SetExternalMember(FunctionName, UUDPPacketLibrary::StaticClass());
-            GetValueNode->AllocateDefaultPins();
+            GetterNode->FunctionReference.SetExternalMember(FunctionName, UUDPPacketLibrary::StaticClass());
+            GetterNode->AllocateDefaultPins();
 
-        	// Connect UDPPacket to the get function
-        	UEdGraphPin* GetPacketPin = GetValueNode->FindPin(TEXT("UDPPacket"));
-        	if (GetPacketPin)
-        	{
-        		UEdGraphPin* ValidPacketOut = ValidateNode->FindPin(TEXT("ValidatedPacket"));
-        		if (ValidPacketOut)
-        		{
-        			ValidPacketOut->MakeLinkTo(GetPacketPin);
-        		}
-        	}
+            // Connect UDP packet input
+            CompilerContext.CopyPinLinksToIntermediate(*ValidateNode->FindPinChecked(TEXT("UDPPacket")), 
+                *GetterNode->FindPinChecked(TEXT("UDPPacket")));
 
-            // Connect field name
-            UEdGraphPin* FieldNamePin = GetValueNode->FindPin(TEXT("FieldName"));
-            if (FieldNamePin)
+            // Set field name
+            GetterNode->FindPinChecked(TEXT("FieldName"))->DefaultValue = Field.Name;
+            
+            // Connect output value
+            CompilerContext.MovePinLinksToIntermediate(*FieldPin, *GetterNode->GetReturnValuePin());
+            
+            // Store for execution flow
+            GetterNodes.Add(GetterNode);
+            FieldPinToGetterMap.Add(FieldPin, GetterNode);
+        }
+
+        // If we have one getter, connect execution directly
+        if (GetterNodes.Num() == 1)
+        {
+            // Connect validation to single getter
+            ValidateNode->GetThenPin()->MakeLinkTo(GetterNodes[0]->GetExecPin());
+            
+            // Connect then pin to output
+            CompilerContext.MovePinLinksToIntermediate(*ThenPin, *GetterNodes[0]->GetThenPin());
+        }
+        // If we have multiple getters, use a sequence node
+        else if (GetterNodes.Num() > 1)
+        {
+            UK2Node_ExecutionSequence* SequenceNode = CompilerContext.SpawnIntermediateNode<UK2Node_ExecutionSequence>(this, SourceGraph);
+            SequenceNode->AllocateDefaultPins();
+            
+            // Number of sequence outputs we need = number of getters + 1 for final Then
+            int32 NumOutputs = GetterNodes.Num() + 1;
+            
+            // Expand sequence node to have enough outputs
+            // IMPORTANT: The sequence node automatically starts with 2 outputs
+            for (int32 i = 2; i < NumOutputs; i++)
             {
-                FieldNamePin->DefaultValue = Field.Name;
+                SequenceNode->AddInputPin();
             }
-
-        	// Connect the output value to our field pin
-        	UEdGraphPin* ReturnPin = GetValueNode->GetReturnValuePin();
-        	if (ReturnPin)
-        	{
-        		CompilerContext.MovePinLinksToIntermediate(*FieldPin, *ReturnPin);
-        	}
+            
+            // Connect validate to sequence
+            ValidateNode->GetThenPin()->MakeLinkTo(SequenceNode->GetExecPin());
+            
+            // Connect all getters to sequence
+            for (int32 i = 0; i < GetterNodes.Num(); i++)
+            {
+                UEdGraphPin* SequencePin = SequenceNode->GetThenPinGivenIndex(i);
+                if (ensure(SequencePin && GetterNodes[i]->GetExecPin()))
+                {
+                    SequencePin->MakeLinkTo(GetterNodes[i]->GetExecPin());
+                }
+            }
+            
+            // Connect final sequence output to then pin
+            UEdGraphPin* FinalSequencePin = SequenceNode->GetThenPinGivenIndex(GetterNodes.Num());
+            CompilerContext.MovePinLinksToIntermediate(*ThenPin, *FinalSequencePin);
         }
     }
+    else
+    {
+        // No connected field pins, just pass execution through
+        CompilerContext.MovePinLinksToIntermediate(*ThenPin, *ValidateNode->GetThenPin());
+    }
 
-	// Connect the then pin to the validate node
-	CompilerContext.MovePinLinksToIntermediate(*ThenPin, *ValidateNode->FindPinChecked(UEdGraphSchema_K2::PN_Then));
-
-	// Break all links at the end
-	BreakAllNodeLinks();
-
-    UE_LOG(LogTemp, Warning, TEXT("ExpandNode END for CreateUDPPacket"));
+    // Clean up
+    BreakAllNodeLinks();
 }
 
 #undef LOCTEXT_NAMESPACE

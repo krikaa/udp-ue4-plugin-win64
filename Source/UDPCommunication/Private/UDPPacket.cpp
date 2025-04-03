@@ -73,19 +73,48 @@ void FUDPPacket::SetString(const FString& FieldName, const FString& Value)
 
 float FUDPPacket::GetFloat(const FString& FieldName) const
 {
+    UE_LOG(LogTemp, Display, TEXT("Extracting float field '%s' from packet with %d bytes"), 
+           *FieldName, Data.Num());
+    
     if (!Structure)
-        return 0.0f;
-        
-    int32 Offset = Structure->GetFieldOffset(FieldName);
-    if (Offset < 0 || Structure->GetFieldType(FieldName) != EUDPDataType::Float)
     {
+        UE_LOG(LogTemp, Warning, TEXT("Missing packet structure"));
         return 0.0f;
     }
+        
+    int32 Offset = Structure->GetFieldOffset(FieldName);
+    UE_LOG(LogTemp, Display, TEXT("GetFloat: Field '%s' offset is %d"), *FieldName, Offset);
+    
+    if (Offset < 0)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Field '%s' not found in structure"), *FieldName);
+        return 0.0f;
+    }
+
+    if (Structure->GetFieldType(FieldName) != EUDPDataType::Float)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Field '%s' is not a float"), *FieldName);
+        return 0.0f;
+    }
+    
+    // Dump the raw bytes for debugging
+    FString ByteDump = TEXT("Raw bytes at offset: ");
+    for (int32 i = 0; i < sizeof(float) && Offset + i < Data.Num(); i++)
+    {
+        ByteDump.Append(FString::Printf(TEXT("%02X "), Data[Offset + i]));
+    }
+    UE_LOG(LogTemp, Display, TEXT("%s"), *ByteDump);
 
     float Value = 0.0f;
     if (Data.Num() >= Offset + sizeof(float))
     {
         FMemory::Memcpy(&Value, Data.GetData() + Offset, sizeof(float));
+        UE_LOG(LogTemp, Display, TEXT("Successfully extracted float %f from offset %d"), Value, Offset);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Data array too small for float at offset %d (needs %d bytes, has %d)"), 
+               Offset, Offset + sizeof(float), Data.Num());
     }
 
     return Value;
