@@ -19,6 +19,7 @@ struct UDPCOMMUNICATION_API FUDPPacket
 	FUDPPacket();
     
 	void InitWithStructure(UUDPPacketStructure* InitStructure);
+	int32 CheckAndGetOffset(const FString& FieldName, EUDPDataType DataType) const;
     
 	// Value setters
 	void SetFloat(const FString& FieldName, float Value);

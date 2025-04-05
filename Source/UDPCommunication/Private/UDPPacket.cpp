@@ -71,50 +71,47 @@ void FUDPPacket::SetString(const FString& FieldName, const FString& Value)
     }
 }
 
-float FUDPPacket::GetFloat(const FString& FieldName) const
+int32 FUDPPacket::CheckAndGetOffset(const FString& FieldName, EUDPDataType DataType) const
 {
-    UE_LOG(LogTemp, Display, TEXT("Extracting float field '%s' from packet with %d bytes"), 
-           *FieldName, Data.Num());
-    
     if (!Structure)
     {
         UE_LOG(LogTemp, Warning, TEXT("Missing packet structure"));
-        return 0.0f;
+        return -1;
     }
-        
+
     int32 Offset = Structure->GetFieldOffset(FieldName);
-    UE_LOG(LogTemp, Display, TEXT("GetFloat: Field '%s' offset is %d"), *FieldName, Offset);
-    
     if (Offset < 0)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Field '%s' not found in structure"), *FieldName);
-        return 0.0f;
+        UE_LOG(LogTemp, Warning, TEXT("Field '%s' not found in structure, try refreshing the node"), *FieldName);
+        return -1;
     }
 
-    if (Structure->GetFieldType(FieldName) != EUDPDataType::Float)
+    if (Structure->GetFieldType(FieldName) != DataType)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Field '%s' is not a float"), *FieldName);
-        return 0.0f;
+        UE_LOG(LogTemp, Warning, TEXT("Field '%s' is not of the specified type"), *FieldName);
+        return -1;
     }
+
+    return Offset;
+}
+
+float FUDPPacket::GetFloat(const FString& FieldName) const
+{
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Float);
+    if (Offset < 0)
+        return 0.0f;
     
-    // Dump the raw bytes for debugging
-    FString ByteDump = TEXT("Raw bytes at offset: ");
-    for (int32 i = 0; i < sizeof(float) && Offset + i < Data.Num(); i++)
-    {
-        ByteDump.Append(FString::Printf(TEXT("%02X "), Data[Offset + i]));
-    }
-    UE_LOG(LogTemp, Display, TEXT("%s"), *ByteDump);
-
     float Value = 0.0f;
+    
     if (Data.Num() >= Offset + sizeof(float))
     {
         FMemory::Memcpy(&Value, Data.GetData() + Offset, sizeof(float));
-        UE_LOG(LogTemp, Display, TEXT("Successfully extracted float %f from offset %d"), Value, Offset);
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Data array too small for float at offset %d (needs %d bytes, has %d)"), 
+        UE_LOG(LogTemp, Warning, TEXT("Data array too small for float at offset %d (needs %llu bytes, has %d)"), 
                Offset, Offset + sizeof(float), Data.Num());
+        return 0.0f;
     }
 
     return Value;
@@ -122,52 +119,86 @@ float FUDPPacket::GetFloat(const FString& FieldName) const
 
 int32 FUDPPacket::GetInt(const FString& FieldName) const
 {
-    if (!Structure)
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Int);
+    if (Offset < 0)
         return 0;
-        
-    int32 Result = 0;
-    int32 Offset = Structure->GetFieldOffset(FieldName);
-    if (Offset >= 0 && Structure->GetFieldType(FieldName) == EUDPDataType::Int)
+    
+    int32 Value = 0;
+    
+    if (Data.Num() >= Offset + sizeof(int32))
     {
-        FMemory::Memcpy(&Result, Data.GetData() + Offset, sizeof(int32));
+        FMemory::Memcpy(&Value, Data.GetData() + Offset, sizeof(int32));
     }
-    return Result;
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Data array too small for integer at offset %d (needs %llu bytes, has %d)"), 
+               Offset, Offset + sizeof(int32), Data.Num());
+        return 0;
+    }
+
+    return Value;
 }
 
 bool FUDPPacket::GetBool(const FString& FieldName) const
 {
-    if (!Structure)
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Bool);
+    if (Offset < 0)
         return false;
-        
-    bool Result = false;
-    int32 Offset = Structure->GetFieldOffset(FieldName);
-    if (Offset >= 0 && Structure->GetFieldType(FieldName) == EUDPDataType::Bool)
+    
+    bool Value = false;
+    
+    if (Data.Num() >= Offset + sizeof(bool))
     {
-        FMemory::Memcpy(&Result, Data.GetData() + Offset, sizeof(bool));
+        FMemory::Memcpy(&Value, Data.GetData() + Offset, sizeof(bool));
     }
-    return Result;
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Data array too small for bool at offset %d (needs %llu bytes, has %d)"), 
+               Offset, Offset + sizeof(bool), Data.Num());
+        return false;
+    }
+
+    return Value;
 }
 
 FString FUDPPacket::GetString(const FString& FieldName) const
 {
-    if (!Structure)
-        return FString();
-        
-    int32 Offset = Structure->GetFieldOffset(FieldName);
-    if (Offset >= 0 && Structure->GetFieldType(FieldName) == EUDPDataType::String)
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::String);
+    if (Offset < 0)
+        return TEXT("");
+
+    int32 Length = 0;
+    
+    // Check if we have enough data to read the string length
+    if (Data.Num() >= Offset + sizeof(int32))
     {
-        int32 Length = 0;
         FMemory::Memcpy(&Length, Data.GetData() + Offset, sizeof(int32));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Data array too small for string length at offset %d (needs %d bytes, has %d)"),
+               Offset, (int32)(Offset + sizeof(int32)), Data.Num());
+        return TEXT("");
+    }
+
+    // Validate string length
+    if (Length <= 0)
+        return TEXT("");
         
-        if (Length <= 0)
-            return FString();
-            
+    // Check if we have enough data for the full string
+    if (Data.Num() >= Offset + sizeof(int32) + Length)
+    {
         TArray<ANSICHAR> StringData;
         StringData.SetNumUninitialized(Length + 1);
         FMemory::Memcpy(StringData.GetData(), Data.GetData() + Offset + sizeof(int32), Length);
         StringData[Length] = 0; // Null terminate
-        
+
         return FString(UTF8_TO_TCHAR(StringData.GetData()));
     }
-    return FString();
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Data array too small for string at offset %d (needs %d bytes, has %d)"),
+               Offset, (int32)(Offset + sizeof(int32) + Length), Data.Num());
+        return TEXT("");
+    }
 }
