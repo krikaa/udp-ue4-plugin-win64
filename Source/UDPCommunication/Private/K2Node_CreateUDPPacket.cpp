@@ -270,10 +270,50 @@ void UK2Node_CreateUDPPacket::ReconstructNode()
     // Store current packet structure
     UEdGraphPin* PacketStructPin = FindPin(PIN_PacketStructName);
     UUDPPacketStructure* PacketStruct = nullptr;
-    
+
+    // Store existing pin info
+    TMap<FName, TArray<UEdGraphPin*>> PinConnections;
+    TMap<FName, FString> PinDefaultValues;
+    TMap<FName, UObject*> PinDefaultObjects;
+    TSet<FName> ExistingFieldPins;
+
+    // Remember all pin states
+    for (UEdGraphPin* Pin : Pins)
+    {
+        // Identify field pins
+        if (Pin->PinName != UEdGraphSchema_K2::PN_Execute &&
+            Pin->PinName != UEdGraphSchema_K2::PN_Then &&
+            Pin->PinName != PIN_PacketStructName &&
+            Pin->PinName != PIN_OutputName)
+        {
+            ExistingFieldPins.Add(Pin->PinName);
+        }
+
+        // Store connections
+        if (Pin->LinkedTo.Num() > 0)
+        {
+            PinConnections.Add(Pin->PinName, Pin->LinkedTo);
+        }
+
+        // Store default values
+        if (Pin->LinkedTo.Num() == 0)
+        {
+            if (!Pin->DefaultValue.IsEmpty())
+            {
+                PinDefaultValues.Add(Pin->PinName, Pin->DefaultValue);
+            }
+
+            if (Pin->DefaultObject != nullptr)
+            {
+                PinDefaultObjects.Add(Pin->PinName, Pin->DefaultObject);
+            }
+        }
+    }
+
+    // Get packet structure
     if (PacketStructPin)
     {
-        // Check linked pins first
+        // Get from connections
         if (PacketStructPin->LinkedTo.Num() > 0)
         {
             UEdGraphPin* LinkedPin = PacketStructPin->LinkedTo[0];
@@ -282,23 +322,88 @@ void UK2Node_CreateUDPPacket::ReconstructNode()
                 PacketStruct = Cast<UUDPPacketStructure>(LinkedPin->DefaultObject);
             }
         }
-        // Otherwise check default object
+        // Get from default object
         else if (PacketStructPin->DefaultObject)
         {
             PacketStruct = Cast<UUDPPacketStructure>(PacketStructPin->DefaultObject);
         }
     }
-    
-    // Call parent implementation to clear pins
+
+    // Use cached structure as fallback
+    if (!PacketStruct && CachedPacketStructure)
+    {
+        PacketStruct = CachedPacketStructure;
+    }
+
+    // Handle special case: If packet structure isn't fully loaded, delay reconstruction
+    if (PacketStruct && PacketStruct->HasAnyFlags(RF_NeedLoad | RF_NeedPostLoad))
+    {
+        // Schedule reconstruction for next tick when asset is fully loaded
+        FTSTicker::GetCoreTicker().AddTicker(
+            FTickerDelegate::CreateLambda([this](float DeltaTime) {
+                ReconstructNode();
+                return false; // One-shot ticker
+            }),
+            0.1f
+        );
+        
+        // Update cache and exit without reconstructing
+        if (PacketStruct)
+        {
+            CachedPacketStructure = PacketStruct;
+        }
+        return;
+    }
+
+    // Update the cached structure
+    if (PacketStruct)
+    {
+        CachedPacketStructure = PacketStruct;
+    }
+
+    // Rebuild node structure
     Super::ReconstructNode();
-    
-    // Recreate pins based on stored packet structure
+
+    // Create pins based on what's available
     if (PacketStruct)
     {
         CreateFieldPins(PacketStruct);
     }
-    
-    // Make sure the graph knows about the changes
+    else if (ExistingFieldPins.Num() > 0)
+    {
+        CreatePreservedFieldPins(ExistingFieldPins, PinConnections);
+    }
+
+    // Restore connections and values
+    for (UEdGraphPin* Pin : Pins)
+    {
+        // Restore connections
+        if (PinConnections.Contains(Pin->PinName))
+        {
+            for (UEdGraphPin* ConnectedPin : PinConnections[Pin->PinName])
+            {
+                if (ConnectedPin && !ConnectedPin->IsPendingKill())
+                {
+                    Pin->MakeLinkTo(ConnectedPin);
+                }
+            }
+        }
+
+        // Restore default values for unconnected pins
+        if (Pin->LinkedTo.Num() == 0)
+        {
+            if (PinDefaultValues.Contains(Pin->PinName))
+            {
+                Pin->DefaultValue = PinDefaultValues[Pin->PinName];
+            }
+
+            if (PinDefaultObjects.Contains(Pin->PinName))
+            {
+                Pin->DefaultObject = PinDefaultObjects[Pin->PinName];
+            }
+        }
+    }
+
     GetGraph()->NotifyGraphChanged();
 }
 
@@ -364,6 +469,96 @@ void UK2Node_CreateUDPPacket::CreateFieldPins(UUDPPacketStructure* PacketStruct)
     if (UEdGraph* Graph = GetGraph())
     {
         Graph->NotifyGraphChanged();
+    }
+}
+
+void UK2Node_CreateUDPPacket::PostLoad()
+{
+    // Call parent first
+    Super::PostLoad();
+
+    // Schedule a deferred action to mark the blueprint dirty
+    // This will run after all assets are loaded when it's safe to access the blueprint
+    if (GIsEditor && !GIsPlayInEditorWorld)
+    {
+        // Use a lambda that captures a weak pointer to this node
+        TWeakObjectPtr<UK2Node_CreateUDPPacket> WeakThis(this);
+        FTSTicker::GetCoreTicker().AddTicker(
+            FTickerDelegate::CreateLambda([WeakThis](float DeltaTime) {
+                if (WeakThis.IsValid())
+                {
+                    UEdGraph* Graph = WeakThis->GetGraph();
+                    if (Graph)
+                    {
+                        UBlueprint* Blueprint = Graph->GetTypedOuter<UBlueprint>();
+                        if (Blueprint)
+                        {
+                            Blueprint->Status = BS_Dirty;
+                            Blueprint->MarkPackageDirty();
+                        }
+                    }
+                }
+                return false; // One-shot ticker
+            }),
+            0.5f // Half-second delay to ensure everything is loaded
+        );
+    }
+
+    // Request node reconstruction
+    GetGraph()->NotifyNodeChanged(this);
+}
+
+void UK2Node_CreateUDPPacket::Serialize(FArchive& Ar)
+{
+    Super::Serialize(Ar);
+    
+    // Before saving, store the current structure reference
+    if (Ar.IsSaving())
+    {
+        UEdGraphPin* PacketStructPin = FindPin(PIN_PacketStructName);
+        CachedPacketStructure = nullptr;
+        
+        if (PacketStructPin)
+        {
+            if (PacketStructPin->LinkedTo.Num() > 0 && PacketStructPin->LinkedTo[0]->DefaultObject)
+            {
+                CachedPacketStructure = Cast<UUDPPacketStructure>(PacketStructPin->LinkedTo[0]->DefaultObject);
+            }
+            else if (PacketStructPin->DefaultObject)
+            {
+                CachedPacketStructure = Cast<UUDPPacketStructure>(PacketStructPin->DefaultObject);
+            }
+        }
+    }
+}
+
+void UK2Node_CreateUDPPacket::CreatePreservedFieldPins(const TSet<FName>& PinNames, const TMap<FName, TArray<UEdGraphPin*>>& PinConnections)
+{
+    for (const FName& PinName : PinNames)
+    {
+        UEdGraphPin* NewPin = nullptr;
+        
+        // Try to determine the pin type based on connections
+        if (PinConnections.Contains(PinName) && PinConnections[PinName].Num() > 0)
+        {
+            UEdGraphPin* ConnectedPin = PinConnections[PinName][0];
+            if (ConnectedPin)
+            {
+                // Create pin with matching type
+                NewPin = CreatePin(EGPD_Input, ConnectedPin->PinType.PinCategory, PinName);
+            }
+        }
+        
+        // If we couldn't determine type from connections, default to float
+        if (!NewPin)
+        {
+            NewPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Real, PinName);
+        }
+        
+        if (NewPin)
+        {
+            NewPin->PinFriendlyName = FText::FromName(PinName);
+        }
     }
 }
 

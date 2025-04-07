@@ -56,4 +56,9 @@ public:
     
 	int32 GetFieldOffset(const FString& FieldName) const;
 	EUDPDataType GetFieldType(const FString& FieldName) const;
+
+	bool IsFullyLoaded() const
+	{
+		return !HasAnyFlags(RF_NeedLoad | RF_NeedPostLoad);
+	}
 };

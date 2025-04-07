@@ -12,6 +12,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "UDPPacketLibrary.h"
 #include "GraphEditorSettings.h"
+#include "Containers/Ticker.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 #include "K2Node_CreateUDPPacket.generated.h"
 
 /**
@@ -43,4 +45,17 @@ public:
 	virtual void PinDefaultValueChanged(UEdGraphPin* Pin) override;
 	virtual void ReconstructNode() override;
 	virtual void ExpandNode(FKismetCompilerContext& CompilerContext, UEdGraph* SourceGraph) override;
+
+	private:
+    // Serialized reference to the packet structure asset
+    UPROPERTY()
+    UUDPPacketStructure* CachedPacketStructure;
+
+    // Override PostLoad to ensure pins are recreated correctly after deserialization
+    virtual void PostLoad() override;
+    
+    // Override Serialize to save/load our cached data
+    virtual void Serialize(FArchive& Ar) override;
+	
+	void CreatePreservedFieldPins(const TSet<FName>& PinNames, const TMap<FName, TArray<UEdGraphPin*>>& PinConnections);
 };
