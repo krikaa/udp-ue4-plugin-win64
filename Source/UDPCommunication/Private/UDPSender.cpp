@@ -1,8 +1,6 @@
-﻿
-
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UDPSender.h"
-
 
 // Sets default values for this component's properties
 UUDPSender::UUDPSender(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)

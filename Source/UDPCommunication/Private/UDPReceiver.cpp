@@ -1,6 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "UDPReceiver.h"
 
 void UUDPReceiver::Receive(const FArrayReaderPtr& ArrayReaderPtr, const FIPv4Endpoint& Endpoint)
@@ -12,9 +11,8 @@ void UUDPReceiver::Receive(const FArrayReaderPtr& ArrayReaderPtr, const FIPv4End
 	}
 
 	GotNewData = true;
-
-	//if (UpdateInterest)
-	Archive(ArrayReaderPtr);
+	if (UpdateInterest)	
+		Archive(ArrayReaderPtr);
 }
 
 bool UUDPReceiver::StartUDPReceiver(const FString& SocketName, const int32 Port)
@@ -47,27 +45,6 @@ void UUDPReceiver::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(ListenSocket);
 	}
 }
-
-// void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
-// {
-// 	FUDPData Data;
-// 	*ArrayReaderPtr << Data;
-// 	
-// 	// Class Parameter Update function to set object ready for a query from blueprint
-// 	UpdateReceiverData(Data);
-// }
-
-// void UUDPReceiver::UpdateReceiverData(FUDPData Data)
-// {
-// 	ReceivedData = Data;
-// }
-
-// FUDPData UUDPReceiver::GetData()
-// {
-// 	UpdateInterest = true; // Ready for new data
-// 	GotNewData = false;
-// 	return ReceivedData;
-// }
 
 bool UUDPReceiver::IsNewDataReady()
 {
@@ -116,15 +93,8 @@ FUDPPacket UUDPReceiver::GetUDPPacket()
 	return ReceivedUDPData;
 }
 
-// Modify the Archive method to handle both legacy and dynamic data
+// Add possible legacy support for older versions?
 void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
 {
 	ArchivePacket(ArrayReaderPtr);
-	// else
-	// {
-	// 	// Legacy support
-	// 	FUDPData Data;
-	// 	*ArrayReaderPtr << Data;
-	// 	UpdateReceiverData(Data);
-	// }
 }

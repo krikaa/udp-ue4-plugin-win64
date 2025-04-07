@@ -2,9 +2,6 @@
 
 #include "K2Node_BreakUDPPacket.h"
 
-#include "K2Node_ExecutionSequence.h"
-
-
 #define LOCTEXT_NAMESPACE "K2Node_BreakUDPPacket"
 
 // Input pin names

@@ -1,39 +1,36 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "UDPPacketLibrary.h"
 
 void UUDPPacketLibrary::InitWithStructure(UPARAM(ref) FUDPPacket& UDPPacket, UUDPPacketStructure* Structure)
 {
 	if (!Structure)
 	{
-		UE_LOG(LogTemp, Error, TEXT("InitWithStructure: Invalid packet structure"));
+		UE_LOG(LogTemp, Error, TEXT("Invalid packet structure"));
 		return;
 	}
 
-	// Make sure the packet structure is compiled
+	// Make sure the packet structure is compiled and set
 	Structure->CompileStructure();
-
-	// Set the packet structure reference
 	UDPPacket.Structure = Structure;
 
 	// Resize the data buffer to match the packet size
 	UDPPacket.Data.SetNumZeroed(Structure->PacketSize);
 
-	UE_LOG(LogTemp, Verbose, TEXT("Initialized UDP packet with structure %s (size: %d)"), 
-		   *Structure->GetName(), Structure->PacketSize);
+	UE_LOG(LogTemp, Verbose, TEXT("Initialized UDP sender structure: %s (%d bytes, %d fields"), 
+		   *Structure->GetName(),  UDPPacket.Data.Num(), Structure->Fields.Num());
 }
 
 void UUDPPacketLibrary::ValidateWithStructure(UPARAM(ref) FUDPPacket& UDPPacket, UUDPPacketStructure* Structure)
 {
 	if (!Structure)
 	{
-		UE_LOG(LogTemp, Error, TEXT("InitWithStructure: Invalid packet structure"));
+		UE_LOG(LogTemp, Error, TEXT("Invalid packet structure"));
 		return;
 	}
 	
-	UE_LOG(LogTemp, Display, TEXT("ValidateWithStructure: Packet has %d bytes, structure has %d fields"), 
-           UDPPacket.Data.Num(), Structure->Fields.Num());
+	UE_LOG(LogTemp, Display, TEXT("Initialized UDP receiver structure: %s (%d bytes, %d fields"), 
+           *Structure->GetName(), UDPPacket.Data.Num(), Structure->Fields.Num());
 
     // Ensure the packet has the structure reference
     UDPPacket.Structure = Structure;

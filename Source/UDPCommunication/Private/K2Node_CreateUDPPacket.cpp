@@ -2,8 +2,6 @@
 
 #include "K2Node_CreateUDPPacket.h"
 
-#include "GraphEditorSettings.h"
-
 #define LOCTEXT_NAMESPACE "K2Node_UDPPacket"
 
 // Input pin names
