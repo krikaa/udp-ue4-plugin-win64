@@ -530,7 +530,8 @@ void UK2Node_BreakUDPPacket::PostLoad()
 						if (Blueprint)
 						{
 							Blueprint->Status = BS_Dirty;
-							Blueprint->MarkPackageDirty();
+							if (!Blueprint->MarkPackageDirty())
+								UE_LOG(LogTemp, Warning, TEXT("Failed to mark BreakUDPPacket node dirty. Recompile the blueprint manually!"));
 						}
 					}
 				}

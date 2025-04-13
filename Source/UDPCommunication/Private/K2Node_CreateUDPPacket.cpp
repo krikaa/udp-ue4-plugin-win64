@@ -60,24 +60,14 @@ void UK2Node_CreateUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext
     {
         PacketStruct = Cast<UUDPPacketStructure>(PacketStructPin->DefaultObject);
     }
-
-    // Debug print node
-    UK2Node_CallFunction* DebugNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
-    DebugNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UKismetSystemLibrary, PrintString), UKismetSystemLibrary::StaticClass());
-    DebugNode->AllocateDefaultPins();
-    DebugNode->FindPinChecked(TEXT("InString"))->DefaultValue = TEXT("UDP Packet Node Executed");
-    DebugNode->FindPinChecked(TEXT("bPrintToScreen"))->DefaultValue = TEXT("true");
-    DebugNode->FindPinChecked(TEXT("bPrintToLog"))->DefaultValue = TEXT("true");
-
-    // Connect the execution flow start
-    CompilerContext.MovePinLinksToIntermediate(*ExecPin, *DebugNode->GetExecPin());
-
+    
+    // Create call to CreateUDPPacket
     UK2Node_CallFunction* CreateDataNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
     CreateDataNode->FunctionReference.SetExternalMember(GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, CreateUDPPacket), UUDPPacketLibrary::StaticClass());
     CreateDataNode->AllocateDefaultPins();
 
-    // Connect debug node to create data node
-    DebugNode->GetThenPin()->MakeLinkTo(CreateDataNode->GetExecPin());
+    // Connect the execution flow start
+    CompilerContext.MovePinLinksToIntermediate(*ExecPin, *CreateDataNode->GetExecPin());
     
     // Create call to InitWithStructure
     UK2Node_CallFunction* InitDefNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
@@ -492,7 +482,8 @@ void UK2Node_CreateUDPPacket::PostLoad()
                         if (Blueprint)
                         {
                             Blueprint->Status = BS_Dirty;
-                            Blueprint->MarkPackageDirty();
+                            if (!Blueprint->MarkPackageDirty())
+                                UE_LOG(LogTemp, Warning, TEXT("Failed to mark CreateUDPPacket node dirty. Recompile the blueprint manually!"));
                         }
                     }
                 }
