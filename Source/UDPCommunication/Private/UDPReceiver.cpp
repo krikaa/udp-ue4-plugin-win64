@@ -46,12 +46,20 @@ void UUDPReceiver::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
-bool UUDPReceiver::IsNewDataReady()
+void UUDPReceiver::IsNewDataReady(EDataReadyBranches& Branches)
 {
-	return GotNewData;
+	Branches = GotNewData ? EDataReadyBranches::Ready : EDataReadyBranches::NotReady;
 }
 
-void UUDPReceiver::ArchivePacket(const FArrayReaderPtr& ArrayReaderPtr)
+FUDPPacket UUDPReceiver::GetUDPPacket()
+{
+	UpdateInterest = true;
+	GotNewData = false;
+	return ReceivedUDPData;
+}
+
+// Add possible legacy support for older versions?
+void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
 {
 	FUDPPacket UDPPacket;
     
@@ -77,24 +85,6 @@ void UUDPReceiver::ArchivePacket(const FArrayReaderPtr& ArrayReaderPtr)
 	{
 		UDPPacket.Structure = PacketStructure;
 	}
-
-	UpdateUDPPacket(UDPPacket);
-}
-
-void UUDPReceiver::UpdateUDPPacket(const FUDPPacket& UDPPacket)
-{
+	
 	ReceivedUDPData = UDPPacket;
-}
-
-FUDPPacket UUDPReceiver::GetUDPPacket()
-{
-	UpdateInterest = true;
-	GotNewData = false;
-	return ReceivedUDPData;
-}
-
-// Add possible legacy support for older versions?
-void UUDPReceiver::Archive(const FArrayReaderPtr& ArrayReaderPtr)
-{
-	ArchivePacket(ArrayReaderPtr);
 }
