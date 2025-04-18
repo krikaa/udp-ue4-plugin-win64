@@ -55,7 +55,8 @@ class UDPCOMMUNICATION_API UUDPPacketStructure : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication",
+		meta=(ToolTip="A map of fields in the packet structure to be sent/received. A unique name can be given to each field for better identification."))
 	TMap<FString, FUDPField> Fields;
 
 	// Compiled packet data for runtime optimization
@@ -76,7 +77,9 @@ public:
     
 	virtual void PostLoad() override;
 	void CompileStructure();
-    
+
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+	
 	int32 GetFieldOffset(const FString& FieldName) const;
 	EUDPDataType GetFieldType(const FString& FieldName) const;
 

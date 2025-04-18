@@ -83,6 +83,41 @@ void UUDPPacketStructure::CompileStructure()
 	PacketSize = CurrentOffset;
 }
 
+void UUDPPacketStructure::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	FName PropertyName = PropertyChangedEvent.GetPropertyName();
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UUDPPacketStructure, Fields))
+	{
+		// Check if an element was added (MapProperty will have MapAdd notification)
+		if (PropertyChangedEvent.ChangeType == EPropertyChangeType::ArrayAdd)
+		{
+			// Find the newly added element with empty key and give it a name
+			for (auto& Pair : Fields)
+			{
+				if (Pair.Key.IsEmpty())
+				{
+					// Generate a unique name
+					int32 Index = 1;
+					FString NewName;
+					do {
+						NewName = FString::Printf(TEXT("Field %d"), Index++);
+					} while (Fields.Contains(NewName) && Index < 1000);
+                    
+					// Rename the key
+					Fields.Add(NewName, Pair.Value);
+					Fields.Remove("");
+					break;
+				}
+			}
+		}
+        
+		// Always recompile when the structure changes
+		CompileStructure();
+	}
+}
+
 int32 UUDPPacketStructure::GetFieldOffset(const FString& FieldName) const
 {
 	return Fields.Contains(FieldName) ? Fields[FieldName].Offset : -1;
