@@ -73,6 +73,51 @@ void FUDPPacket::SetString(const FString& FieldName, const FString& Value)
     }
 }
 
+void FUDPPacket::SetFloatArray(const FString& FieldName, const TArray<float>& Value)
+{
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Float);
+    if (Offset < 0 || !Structure) return;
+
+    const FUDPField* Field = Structure->Fields.Find(FieldName);
+    if (!Field || !Field->IsArray) return;
+
+    int32 ElementCount = FMath::Min(Value.Num(), Field->Count);
+    if (ElementCount > 0)
+    {
+        FMemory::Memcpy(Data.GetData() + Offset, Value.GetData(), ElementCount * sizeof(float));
+    }
+}
+
+void FUDPPacket::SetIntArray(const FString& FieldName, const TArray<int32>& Value)
+{
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Int);
+    if (Offset < 0 || !Structure) return;
+    
+    const FUDPField* Field = Structure->Fields.Find(FieldName);
+    if (!Field || !Field->IsArray) return;
+    
+    int32 ElementCount = FMath::Min(Value.Num(), Field->Count);
+    if (ElementCount > 0)
+    {
+        FMemory::Memcpy(Data.GetData() + Offset, Value.GetData(), ElementCount * sizeof(int32));
+    }
+}
+
+void FUDPPacket::SetBoolArray(const FString& FieldName, const TArray<bool>& Value)
+{
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Bool);
+    if (Offset < 0 || !Structure) return;
+
+    const FUDPField* Field = Structure->Fields.Find(FieldName);
+    if (!Field || !Field->IsArray) return;
+
+    int32 ElementCount = FMath::Min(Value.Num(), Field->Count);
+    if (ElementCount > 0)
+    {
+        FMemory::Memcpy(Data.GetData() + Offset, Value.GetData(), ElementCount * sizeof(bool));
+    }
+}
+
 int32 FUDPPacket::CheckAndGetOffset(const FString& FieldName, EUDPDataType DataType) const
 {
     if (!Structure)
@@ -203,4 +248,64 @@ FString FUDPPacket::GetString(const FString& FieldName) const
                Offset, (int32)(Offset + sizeof(int32) + Length), Data.Num());
         return TEXT("");
     }
+}
+
+TArray<float> FUDPPacket::GetFloatArray(const FString& FieldName) const
+{
+    TArray<float> Result;
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Float);
+    if (Offset < 0 || !Structure) return Result;
+
+    const FUDPField* Field = Structure->Fields.Find(FieldName);
+    if (!Field || !Field->IsArray) return Result;
+
+    const int32 ElementCount = Field->Count;
+  
+    if (Data.Num() >= Offset + (ElementCount * sizeof(float)))
+    {
+        Result.SetNumUninitialized(ElementCount);
+        FMemory::Memcpy(Result.GetData(), Data.GetData() + Offset, ElementCount * sizeof(float));
+    }
+
+    return Result;
+}
+
+TArray<int32> FUDPPacket::GetIntArray(const FString& FieldName) const
+{
+    TArray<int32> Result;
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Int);
+    if (Offset < 0 || !Structure) return Result;
+    
+    const FUDPField* Field = Structure->Fields.Find(FieldName);
+    if (!Field || !Field->IsArray) return Result;
+
+    const int32 ElementCount = Field->Count;
+  
+    if (Data.Num() >= Offset + (ElementCount * sizeof(int32)))
+    {
+        Result.SetNumUninitialized(ElementCount);
+        FMemory::Memcpy(Result.GetData(), Data.GetData() + Offset, ElementCount * sizeof(int32));
+    }
+
+    return Result;
+}
+
+TArray<bool> FUDPPacket::GetBoolArray(const FString& FieldName) const
+{
+    TArray<bool> Result;
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Bool);
+    if (Offset < 0 || !Structure) return Result;
+
+    const FUDPField* Field = Structure->Fields.Find(FieldName);
+    if (!Field || !Field->IsArray) return Result;
+
+    const int32 ElementCount = Field->Count;
+  
+    if (Data.Num() >= Offset + (ElementCount * sizeof(bool)))
+    {
+        Result.SetNumUninitialized(ElementCount);
+        FMemory::Memcpy(Result.GetData(), Data.GetData() + Offset, ElementCount * sizeof(bool));
+    }
+
+    return Result;
 }

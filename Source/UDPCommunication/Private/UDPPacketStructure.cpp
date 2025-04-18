@@ -51,30 +51,32 @@ void UUDPPacketStructure::PostLoad()
 
 void UUDPPacketStructure::CompileStructure()
 {
-	FieldOffsets.Empty();
-	FieldTypes.Empty();
-
 	int32 CurrentOffset = 0;
-	int32 FieldCounter = 1;
 
-	// First pass: calculate offsets with proper alignment
-	for (FUDPField& Field : Fields)
+	// Calculate offsets with proper alignment
+	for (auto& FieldPair : Fields)
 	{
-		// Auto-name empty fields (Field 1, Field 2, etc.)
-		if (Field.Name.IsEmpty())
-		{
-			Field.Name = FString::Printf(TEXT("Field %d"), FieldCounter);
-		}
-		FieldCounter++;
-
+		FUDPField& Field = FieldPair.Value;
+        
+		// Apply alignment
 		int32 Alignment = Field.GetFieldAlignment();
-		// Align the current offset
 		CurrentOffset = (CurrentOffset + Alignment - 1) & ~(Alignment - 1);
-
-		FieldOffsets.Add(Field.Name, CurrentOffset);
-		FieldTypes.Add(Field.Name, Field.DataType);
-
-		CurrentOffset += Field.GetFieldSize();
+        
+		// Store offset directly in the field
+		Field.Offset = CurrentOffset;
+        
+		// Calculate field size based on type and array status
+		int32 ElementSize = Field.GetFieldSize();
+        
+		// Advance the offset
+		if (Field.IsArray && Field.DataType != EUDPDataType::String)
+		{
+			CurrentOffset += ElementSize * Field.Count;
+		}
+		else
+		{
+			CurrentOffset += ElementSize;
+		}
 	}
 
 	// Store the final size
@@ -83,10 +85,10 @@ void UUDPPacketStructure::CompileStructure()
 
 int32 UUDPPacketStructure::GetFieldOffset(const FString& FieldName) const
 {
-	return FieldOffsets.Contains(FieldName) ? FieldOffsets[FieldName] : -1;
+	return Fields.Contains(FieldName) ? Fields[FieldName].Offset : -1;
 }
 
 EUDPDataType UUDPPacketStructure::GetFieldType(const FString& FieldName) const
 {
-	return FieldTypes.Contains(FieldName) ? FieldTypes[FieldName] : EUDPDataType::Float;
+	return Fields.Contains(FieldName) ? Fields[FieldName].DataType : EUDPDataType::Float;
 }

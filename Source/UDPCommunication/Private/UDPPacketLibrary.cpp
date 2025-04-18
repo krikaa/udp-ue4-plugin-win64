@@ -80,3 +80,33 @@ FString UUDPPacketLibrary::GetString(const FUDPPacket& UDPPacket, const FString&
 {
 	return UDPPacket.GetString(FieldName);
 }
+
+void UUDPPacketLibrary::SetFloatArray(FUDPPacket& UDPPacket, const FString& FieldName, const TArray<float>& Value)
+{
+	UDPPacket.SetFloatArray(FieldName, Value);
+}
+
+void UUDPPacketLibrary::SetIntArray(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const TArray<int32>& Value)
+{
+	UDPPacket.SetIntArray(FieldName, Value);
+}
+
+void UUDPPacketLibrary::SetBoolArray(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const TArray<bool>& Value)
+{
+	UDPPacket.SetBoolArray(FieldName, Value);
+}
+
+TArray<float> UUDPPacketLibrary::GetFloatArray(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetFloatArray(FieldName);
+}
+
+TArray<int32> UUDPPacketLibrary::GetIntArray(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetIntArray(FieldName);
+}
+
+TArray<bool> UUDPPacketLibrary::GetBoolArray(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetBoolArray(FieldName);
+}

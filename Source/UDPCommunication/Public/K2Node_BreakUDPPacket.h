@@ -12,6 +12,7 @@
 #include "UDPPacketLibrary.h"
 #include "GraphEditorSettings.h"
 #include "K2Node_ExecutionSequence.h"
+#include "Kismet2/KismetEditorUtilities.h"
 #include "Containers/Ticker.h"
 #include "K2Node_BreakUDPPacket.generated.h"
 

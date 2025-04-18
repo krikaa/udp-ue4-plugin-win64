@@ -28,12 +28,18 @@ struct UDPCOMMUNICATION_API FUDPPacket
 	void SetInt(const FString& FieldName, int32 Value);
 	void SetBool(const FString& FieldName, bool Value);
 	void SetString(const FString& FieldName, const FString& Value);
-    
+	void SetFloatArray(const FString& FieldName, const TArray<float>& Value);
+	auto SetIntArray(const FString& FieldName, const TArray<int32>& Value) -> void;
+	void SetBoolArray(const FString& FieldName, const TArray<bool>& Value);
+	
 	// Value getters
 	float GetFloat(const FString& FieldName) const;
 	int32 GetInt(const FString& FieldName) const;
 	bool GetBool(const FString& FieldName) const;
 	FString GetString(const FString& FieldName) const;
+	TArray<float> GetFloatArray(const FString& FieldName) const;
+	TArray<int32> GetIntArray(const FString& FieldName) const;
+	TArray<bool> GetBoolArray(const FString& FieldName) const;
 };
 
 // Serialization operator
@@ -52,11 +58,14 @@ FORCEINLINE FArchive& operator<<(FArchive& Ar, FUDPPacket& Packet)
             TArray<uint8> SerializedData = Packet.Data;
             
             // For each field, check if it's a string and if so, adjust the data
-            for (const FUDPField& Field : Packet.Structure->Fields)
+            for (const auto& FieldPair : Packet.Structure->Fields)
             {
+				const FString& FieldName = FieldPair.Key;
+            	const FUDPField& Field = FieldPair.Value;
+            	
                 if (Field.DataType == EUDPDataType::String)
                 {
-                    int32 Offset = Packet.Structure->GetFieldOffset(Field.Name);
+                    int32 Offset = Packet.Structure->GetFieldOffset(FieldName);
                     if (Offset >= 0)
                     {
                         // Read the string length

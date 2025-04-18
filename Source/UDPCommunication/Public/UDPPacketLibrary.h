@@ -49,6 +49,25 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static FString GetString(const FUDPPacket& UDPPacket, const FString& FieldName);
 
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	static void SetFloatArray(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const TArray<float>& Value);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	static void SetIntArray(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const TArray<int32>& Value);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	static void SetBoolArray(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const TArray<bool>& Value);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	static TArray<float> GetFloatArray(const FUDPPacket& UDPPacket, const FString& FieldName);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	static TArray<int32> GetIntArray(const FUDPPacket& UDPPacket, const FString& FieldName);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	static TArray<bool> GetBoolArray(const FUDPPacket& UDPPacket, const FString& FieldName);
+	
+
 	UFUNCTION(BlueprintCallable, Category = "UDPCommunication|Debug")
 	static FString DumpPacketBytes(const FUDPPacket& UDPPacket)
 	{

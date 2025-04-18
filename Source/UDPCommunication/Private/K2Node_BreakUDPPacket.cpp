@@ -40,29 +40,38 @@ void UK2Node_BreakUDPPacket::CreateFieldPins(UUDPPacketStructure* PacketStruct)
 	PacketStruct->CompileStructure();
 
 	// Create new pins based on the packet structure fields
-	for (const FUDPField& Field : PacketStruct->Fields)
+	for (const auto& FieldPair : PacketStruct->Fields)
 	{
+		const FString& FieldName = FieldPair.Key;
+		const FUDPField& Field = FieldPair.Value;
+		
 		UEdGraphPin* NewPin = nullptr;
         
 		switch (Field.DataType)
 		{
 		case EUDPDataType::Float:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Real, FName(*Field.Name));
+			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Real, FName(*FieldName));
+			if (Field.IsArray)
+				NewPin->PinType.ContainerType = EPinContainerType::Array;
 			break;
 		case EUDPDataType::Int:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Int, FName(*Field.Name));
+			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Int, FName(*FieldName));
+			if (Field.IsArray)
+				NewPin->PinType.ContainerType = EPinContainerType::Array;
 			break;
 		case EUDPDataType::Bool:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Boolean, FName(*Field.Name));
+			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Boolean, FName(*FieldName));
+			if (Field.IsArray)
+				NewPin->PinType.ContainerType = EPinContainerType::Array;
 			break;
 		case EUDPDataType::String:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_String, FName(*Field.Name));
+			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_String, FName(*FieldName));
 			break;
 		}
 
 		if (NewPin)
 		{
-			NewPin->PinFriendlyName = FText::FromString(Field.Name);
+			NewPin->PinFriendlyName = FText::FromString(FieldName);
 		}
 	}
 
@@ -361,14 +370,15 @@ void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext,
 
     // Count connected field pins
     TArray<UEdGraphPin*> ConnectedFieldPins;
-    for (const FUDPField& Field : PacketStruct->Fields)
-    {
-        UEdGraphPin* FieldPin = FindPin(FName(*Field.Name));
-        if (FieldPin && FieldPin->LinkedTo.Num() > 0)
-        {
-            ConnectedFieldPins.Add(FieldPin);
-        }
-    }
+	for (const auto& FieldPair : PacketStruct->Fields)
+	{
+		const FString& FieldName = FieldPair.Key;
+		UEdGraphPin* FieldPin = FindPin(FName(*FieldName));
+		if (FieldPin && FieldPin->LinkedTo.Num() > 0)
+		{
+			ConnectedFieldPins.Add(FieldPin);
+		}
+	}
 
     // If we have connected field pins, we need to set up a sequence
     if (ConnectedFieldPins.Num() > 0)
@@ -378,9 +388,12 @@ void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext,
         TMap<UEdGraphPin*, UK2Node_CallFunction*> FieldPinToGetterMap;
 
         // First create all the pure getter nodes
-        for (const FUDPField& Field : PacketStruct->Fields)
+    	for (const auto& FieldPair : PacketStruct->Fields)
         {
-            UEdGraphPin* FieldPin = FindPin(FName(*Field.Name));
+    		const FString& FieldName = FieldPair.Key;
+    		const FUDPField& Field = FieldPair.Value;
+    		
+            UEdGraphPin* FieldPin = FindPin(FName(*FieldName));
             if (!FieldPin || FieldPin->LinkedTo.Num() == 0)
             {
                 continue;
@@ -389,23 +402,43 @@ void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext,
             UK2Node_CallFunction* GetterNode = CompilerContext.SpawnIntermediateNode<UK2Node_CallFunction>(this, SourceGraph);
             
             FName FunctionName;
-            switch (Field.DataType)
-            {
-            case EUDPDataType::Float:
-                FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetFloat);
-                break;
-            case EUDPDataType::Int:
-                FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetInt);
-                break;
-            case EUDPDataType::Bool:
-                FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetBool);
-                break;
-            case EUDPDataType::String:
-                FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetString);
-                break;
-            default:
-                continue;
-            }
+        	if (Field.IsArray && Field.DataType != EUDPDataType::String)
+        	{
+        		switch (Field.DataType)
+        		{
+        		case EUDPDataType::Float:
+        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetFloatArray);
+        			break;
+        		case EUDPDataType::Int:
+        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetIntArray);
+        			break;
+        		case EUDPDataType::Bool:
+        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetBoolArray);
+        			break;
+        		default:
+        			continue;
+        		}
+        	}
+        	else
+        	{
+        		switch (Field.DataType)
+        		{
+        		case EUDPDataType::Float:
+        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetFloat);
+        			break;
+        		case EUDPDataType::Int:
+        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetInt);
+        			break;
+        		case EUDPDataType::Bool:
+        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetBool);
+        			break;
+        		case EUDPDataType::String:
+        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetString);
+        			break;
+        		default:
+        			continue;
+        		}
+        	}
 
             GetterNode->FunctionReference.SetExternalMember(FunctionName, UUDPPacketLibrary::StaticClass());
             GetterNode->AllocateDefaultPins();
@@ -415,7 +448,7 @@ void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext,
                 *GetterNode->FindPinChecked(TEXT("UDPPacket")));
 
             // Set field name
-            GetterNode->FindPinChecked(TEXT("FieldName"))->DefaultValue = Field.Name;
+            GetterNode->FindPinChecked(TEXT("FieldName"))->DefaultValue = FieldName;
             
             // Connect output value
             CompilerContext.MovePinLinksToIntermediate(*FieldPin, *GetterNode->GetReturnValuePin());
@@ -498,7 +531,7 @@ void UK2Node_BreakUDPPacket::CreatePreservedFieldPins(const TSet<FName>& PinName
         // If we couldn't determine type from connections, default to float
         if (!NewPin)
         {
-            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Real, PinName);
+            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Real,  PinName);
         }
         
         if (NewPin)
@@ -520,24 +553,29 @@ void UK2Node_BreakUDPPacket::PostLoad()
 		// Use a lambda that captures a weak pointer to this node
 		TWeakObjectPtr<UK2Node_BreakUDPPacket> WeakThis(this);
 		FTSTicker::GetCoreTicker().AddTicker(
-			FTickerDelegate::CreateLambda([WeakThis](float DeltaTime) {
-				if (WeakThis.IsValid())
+		FTickerDelegate::CreateLambda([WeakThis](float DeltaTime) {
+			if (WeakThis.IsValid())
+			{
+				UEdGraph* Graph = WeakThis->GetGraph();
+				if (Graph)
 				{
-					UEdGraph* Graph = WeakThis->GetGraph();
-					if (Graph)
+					// Reconstruct node after everything is loaded
+					WeakThis->ReconstructNode();
+                        
+					// Force trigger node updates
+					Graph->NotifyGraphChanged();
+                        
+					UBlueprint* Blueprint = Graph->GetTypedOuter<UBlueprint>();
+					if (Blueprint)
 					{
-						UBlueprint* Blueprint = Graph->GetTypedOuter<UBlueprint>();
-						if (Blueprint)
-						{
-							Blueprint->Status = BS_Dirty;
-							if (!Blueprint->MarkPackageDirty())
-								UE_LOG(LogTemp, Warning, TEXT("Failed to mark BreakUDPPacket node dirty. Recompile the blueprint manually!"));
-						}
+						// Request a compile without marking dirty
+						FKismetEditorUtilities::CompileBlueprint(Blueprint, EBlueprintCompileOptions::None, nullptr);
 					}
 				}
-				return false; // One-shot ticker
-			}),
-			0.5f // Half-second delay to ensure everything is loaded
+			}
+			return false; // One-shot ticker
+		}),
+		0.5f // Half-second delay to ensure everything is loaded
 		);
 	}
 
