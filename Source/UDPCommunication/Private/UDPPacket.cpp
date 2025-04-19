@@ -118,6 +118,18 @@ void FUDPPacket::SetBoolArray(const FString& FieldName, const TArray<bool>& Valu
     }
 }
 
+void FUDPPacket::SetCustomStruct(const FString& FieldName, const FUDPCustomStruct& Value)
+{
+    if (!Structure)
+        return;
+        
+    int32 Offset = Structure->GetFieldOffset(FieldName);
+    if (Offset >= 0 && Structure->GetFieldType(FieldName) == EUDPDataType::Custom)
+    {
+        FMemory::Memcpy(Data.GetData() + Offset, &Value, sizeof(FUDPCustomStruct));
+    }
+}
+
 int32 FUDPPacket::CheckAndGetOffset(const FString& FieldName, EUDPDataType DataType) const
 {
     if (!Structure)
@@ -308,4 +320,26 @@ TArray<bool> FUDPPacket::GetBoolArray(const FString& FieldName) const
     }
 
     return Result;
+}
+
+FUDPCustomStruct FUDPPacket::GetCustomStruct(const FString& FieldName) const
+{
+    FUDPCustomStruct Value;
+    
+    int32 Offset = CheckAndGetOffset(FieldName, EUDPDataType::Custom);
+    if (Offset < 0)
+        return Value;
+    
+    if (Data.Num() >= Offset + sizeof(FUDPCustomStruct))
+    {
+        FMemory::Memcpy(&Value, Data.GetData() + Offset, sizeof(FUDPCustomStruct));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Data array too small for custom structure at offset %d (needs %llu bytes, has %d)"), 
+               Offset, Offset + sizeof(FUDPCustomStruct), Data.Num());
+        return Value;
+    }
+
+    return Value;
 }

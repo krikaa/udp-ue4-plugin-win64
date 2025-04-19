@@ -67,6 +67,9 @@ void UK2Node_BreakUDPPacket::CreateFieldPins(UUDPPacketStructure* PacketStruct)
 		case EUDPDataType::String:
 			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_String, FName(*FieldName));
 			break;
+		case EUDPDataType::Custom:
+			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Struct, FUDPCustomStruct::StaticStruct(), FName(*FieldName));
+			break;
 		}
 
 		if (NewPin)
@@ -434,6 +437,9 @@ void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext,
         			break;
         		case EUDPDataType::String:
         			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetString);
+        			break;
+        		case EUDPDataType::Custom:
+        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetCustomStruct);
         			break;
         		default:
         			continue;

@@ -59,28 +59,6 @@ bool UUDPSender::StartUDPSender(const FString& SocketName, const FString& IpAddr
 	return true;
 }
 
-// bool UUDPSender::UDPSendArray(FUDPData Data)
-// {
-// 	if (!SenderSocket)
-// 	{
-// 		UE_LOG(LogTemp, Log, TEXT("There is no socket."));
-// 		return false;
-// 	}
-// 	int32 BytesSent = 0;
-//
-// 	FArrayWriter Writer;
-// 	Writer << Data;
-// 	SenderSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteAddr);
-//
-// 	if (BytesSent <= 0)
-// 	{
-// 		UE_LOG(LogTemp, Error, TEXT("Socket exists , but receiver did not accept any packets."));
-// 		return false;
-// 	}
-//
-// 	return true;
-// }
-
 bool UUDPSender::UDPSendPacket(const FUDPPacket& UDPPacket)
 {
 	if (!SenderSocket)
@@ -96,13 +74,6 @@ bool UUDPSender::UDPSendPacket(const FUDPPacket& UDPPacket)
 	}
     
 	int32 BytesSent = 0;
-
-	// Serialize the data with the array length in front
-	// FArrayWriter Writer;
-	// Writer << const_cast<FUDPPacket&>(UDPPacket);
-	// SenderSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteAddr);
-	
-	// Serialize the data without the array length in front
 	SenderSocket->SendTo(UDPPacket.Data.GetData(), UDPPacket.Data.Num(), BytesSent, *RemoteAddr);
 	
 	if (BytesSent <= 0)
@@ -114,16 +85,16 @@ bool UUDPSender::UDPSendPacket(const FUDPPacket& UDPPacket)
 	return true;
 }
 
-FUDPPacket UUDPSender::CreateUDPPacket()
-{
-	// FUDPPacket UDPPacket;
-	// if (PacketStructure)
-	// {
-	// 	UDPPacket.InitWithStructure(PacketStructure);
-	// }
-	// return UDPPacket;
-	return FUDPPacket();
-}
+// FUDPPacket UUDPSender::CreateUDPPacket()
+// {
+// 	// FUDPPacket UDPPacket;
+// 	// if (PacketStructure)
+// 	// {
+// 	// 	UDPPacket.InitWithStructure(PacketStructure);
+// 	// }
+// 	// return UDPPacket;
+// 	return FUDPPacket();
+// }
 
 void UUDPSender::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

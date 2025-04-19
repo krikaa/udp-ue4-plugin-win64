@@ -153,6 +153,9 @@ void UK2Node_CreateUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext
                 case EUDPDataType::String:
                     FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, SetString);
                     break;
+                case EUDPDataType::Custom:
+                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, SetCustomStruct);
+                    break;
                 default:
                     continue;
                 }
@@ -476,6 +479,9 @@ void UK2Node_CreateUDPPacket::CreateFieldPins(UUDPPacketStructure* PacketStruct)
             break;
         case EUDPDataType::String:
             NewPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_String, FName(*FieldName));
+            break;
+        case EUDPDataType::Custom:
+            NewPin = CreatePin(EGPD_Input, UEdGraphSchema_K2::PC_Struct, FUDPCustomStruct::StaticStruct(), FName(*FieldName));
             break;
         }
 

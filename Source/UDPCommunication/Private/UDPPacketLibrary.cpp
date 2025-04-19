@@ -110,3 +110,13 @@ TArray<bool> UUDPPacketLibrary::GetBoolArray(const FUDPPacket& UDPPacket, const 
 {
 	return UDPPacket.GetBoolArray(FieldName);
 }
+
+void UUDPPacketLibrary::SetCustomStruct(FUDPPacket& UDPPacket, const FString& FieldName, const FUDPCustomStruct& Value)
+{
+	UDPPacket.SetCustomStruct(FieldName, Value);
+}
+
+FUDPCustomStruct UUDPPacketLibrary::GetCustomStruct(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetCustomStruct(FieldName);
+}

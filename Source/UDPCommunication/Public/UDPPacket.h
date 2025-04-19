@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "UDPCustomStruct.h"
 #include "UDPPacketStructure.h"
 #include "Serialization/Archive.h"
 #include "UDPPacket.generated.h"
@@ -29,8 +30,9 @@ struct UDPCOMMUNICATION_API FUDPPacket
 	void SetBool(const FString& FieldName, bool Value);
 	void SetString(const FString& FieldName, const FString& Value);
 	void SetFloatArray(const FString& FieldName, const TArray<float>& Value);
-	auto SetIntArray(const FString& FieldName, const TArray<int32>& Value) -> void;
+	void SetIntArray(const FString& FieldName, const TArray<int32>& Value);
 	void SetBoolArray(const FString& FieldName, const TArray<bool>& Value);
+	void SetCustomStruct(const FString& FieldName, const FUDPCustomStruct& Value);
 	
 	// Value getters
 	float GetFloat(const FString& FieldName) const;
@@ -40,6 +42,7 @@ struct UDPCOMMUNICATION_API FUDPPacket
 	TArray<float> GetFloatArray(const FString& FieldName) const;
 	TArray<int32> GetIntArray(const FString& FieldName) const;
 	TArray<bool> GetBoolArray(const FString& FieldName) const;
+	FUDPCustomStruct GetCustomStruct(const FString& FieldName) const;
 };
 
 // Serialization operator

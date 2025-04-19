@@ -23,7 +23,8 @@ public:
 	FSocket* SenderSocket;
 
 	// Creates the socket for the sender
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication")
+	UFUNCTION(BlueprintCallable, Category = "UDPCommunication", DisplayName = "Start UDP Sender",
+		meta = (ToolTip = "Creates a UDP socket to send data from."))
 		bool StartUDPSender(
 			const FString& SocketName,
 			const FString& IpAddress,
@@ -44,10 +45,11 @@ public:
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")
 	// UUDPPacketStructure* PacketStructure;
 
-	UFUNCTION(BlueprintCallable, Category = "UDPCommunication", DisplayName = "Send UDP Data")
+	UFUNCTION(BlueprintCallable, Category = "UDPCommunication", DisplayName = "Send UDP Packet",
+		meta = (ToolTip = "Sends the created UDP packet.\nTo create a packet, use the 'Create UDP Packet' node."))
 	bool UDPSendPacket(const FUDPPacket& UDPPacket);
 
-	// For backward compatibility
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	FUDPPacket CreateUDPPacket();
+	// // For backward compatibility
+	// UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
+	// FUDPPacket CreateUDPPacket();
 };

@@ -2,6 +2,11 @@
 
 #include "UDPPacketStructure.h"
 
+UUDPPacketStructure::UUDPPacketStructure()
+{
+	PacketSize = 0;
+}
+
 int32 FUDPField::GetFieldSize() const
 {
     switch (DataType)
@@ -11,6 +16,7 @@ int32 FUDPField::GetFieldSize() const
     // case EUDPDataType::Byte: return sizeof(uint8);
     case EUDPDataType::Bool: return sizeof(bool);
     case EUDPDataType::String: return sizeof(int32) + MaxLength;
+    case EUDPDataType::Custom: return sizeof(FUDPCustomStruct);
     // case EUDPDataType::Vector: return sizeof(FVector);
     // case EUDPDataType::Vector2D: return sizeof(FVector2D);
     // case EUDPDataType::Rotator: return sizeof(FRotator);
@@ -21,7 +27,6 @@ int32 FUDPField::GetFieldSize() const
     // case EUDPDataType::UInt64: return sizeof(uint64);
     // case EUDPDataType::Int64: return sizeof(int64);
     // case EUDPDataType::Double: return sizeof(double);
-    	
     default: return 0;
     }
 }
@@ -34,13 +39,9 @@ int32 FUDPField::GetFieldAlignment() const
 	case EUDPDataType::Int: return alignof(int32);
 	case EUDPDataType::Bool: return alignof(bool);
 	case EUDPDataType::String: return alignof(int32);
+	case EUDPDataType::Custom: return alignof(FUDPCustomStruct);
 	default: return 1;
 	}
-}
-
-UUDPPacketStructure::UUDPPacketStructure()
-{
-	PacketSize = 0;
 }
 
 void UUDPPacketStructure::PostLoad()
@@ -116,6 +117,11 @@ void UUDPPacketStructure::PostEditChangeProperty(struct FPropertyChangedEvent& P
 		// Always recompile when the structure changes
 		CompileStructure();
 	}
+}
+
+bool UUDPPacketStructure::IsFullyLoaded() const
+{
+	return !HasAnyFlags(RF_NeedLoad | RF_NeedPostLoad);
 }
 
 int32 UUDPPacketStructure::GetFieldOffset(const FString& FieldName) const

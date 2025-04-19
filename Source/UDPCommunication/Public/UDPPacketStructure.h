@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UDPDataType.h"
 #include "Engine/DataAsset.h"
+#include "UDPCustomStruct.h"
 #include "UDPPacketStructure.generated.h"
 
 /**
@@ -32,7 +33,7 @@ struct UDPCOMMUNICATION_API FUDPField
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName="Is an Array", 
 		meta = (ClampMin = "1", ClampMax = "500", UIMin = "1", UIMax = "500",
-		EditCondition = "DataType!=EUDPDataType::String", EditConditionHides,
+		EditCondition = "DataType!=EUDPDataType::String && DataType!=EUDPDataType::Custom", EditConditionHides,
 		ToolTip="Changes the pin and structure to take/receive an array instead of a single element."))
 	bool IsArray = false;
 	
@@ -59,32 +60,17 @@ public:
 		meta=(ToolTip="A map of fields in the packet structure to be sent/received. A unique name can be given to each field for better identification."))
 	TMap<FString, FUDPField> Fields;
 
-	// Compiled packet data for runtime optimization
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication")                    
-	// TMap<FString, FUDPField> FieldMap;     
-	
-	// UPROPERTY(Transient)
-	// TMap<FString, int32> FieldOffsets;
-	//
-	// UPROPERTY(Transient)
-	// TMap<FString, EUDPDataType> FieldTypes;
-
-
 	UPROPERTY(Transient)
 	int32 PacketSize;
 
 	UUDPPacketStructure();
     
 	virtual void PostLoad() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
 	void CompileStructure();
-
-	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+	bool IsFullyLoaded() const;
 	
 	int32 GetFieldOffset(const FString& FieldName) const;
 	EUDPDataType GetFieldType(const FString& FieldName) const;
-
-	bool IsFullyLoaded() const
-	{
-		return !HasAnyFlags(RF_NeedLoad | RF_NeedPostLoad);
-	}
 };
