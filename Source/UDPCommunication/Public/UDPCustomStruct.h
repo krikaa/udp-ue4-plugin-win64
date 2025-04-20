@@ -18,7 +18,8 @@
  *  4. When receiving/sending using the created 'UDPPacketStructure',
  *	   connect the byte pin to the 'UDPCustomData' node to break/create the packet.
  *
- *	NOTE! Structures have to be supported by the engine. Modify at your own risk.
+ *	NOTE! Structures that are not supported by the engine's FArchive might not work properly.
+ *		  You are free to modify the plugin further, but at your own risk.
  */
 
 USTRUCT(BlueprintType, DisplayName = "Custom UDP Structure")

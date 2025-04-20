@@ -49,27 +49,45 @@ void UK2Node_BreakUDPPacket::CreateFieldPins(UUDPPacketStructure* PacketStruct)
         
 		switch (Field.DataType)
 		{
-		case EUDPDataType::Float:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Real, FName(*FieldName));
-			if (Field.IsArray)
-				NewPin->PinType.ContainerType = EPinContainerType::Array;
-			break;
-		case EUDPDataType::Int:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Int, FName(*FieldName));
-			if (Field.IsArray)
-				NewPin->PinType.ContainerType = EPinContainerType::Array;
-			break;
-		case EUDPDataType::Bool:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Boolean, FName(*FieldName));
-			if (Field.IsArray)
-				NewPin->PinType.ContainerType = EPinContainerType::Array;
-			break;
-		case EUDPDataType::String:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_String, FName(*FieldName));
-			break;
-		case EUDPDataType::Custom:
-			NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Struct, FUDPCustomStruct::StaticStruct(), FName(*FieldName));
-			break;
+			case EUDPDataType::Bool:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Boolean, FName(*FieldName));
+	            if (Field.IsArray)
+	                NewPin->PinType.ContainerType = EPinContainerType::Array;
+	            break;
+	        case EUDPDataType::Byte:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Byte, FName(*FieldName));
+	            break;
+	        case EUDPDataType::Int:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Int, FName(*FieldName));
+	            if (Field.IsArray)
+	                NewPin->PinType.ContainerType = EPinContainerType::Array;
+	            break;
+	        case EUDPDataType::Int64:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Int64, FName(*FieldName));
+	            break;
+	        case EUDPDataType::Float:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Real, UEdGraphSchema_K2::PC_Float, FName(*FieldName));
+	            if (Field.IsArray)
+	                NewPin->PinType.ContainerType = EPinContainerType::Array;
+	            break;
+	        case EUDPDataType::Double:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Real, UEdGraphSchema_K2::PC_Double, FName(*FieldName));
+	            break;
+	        case EUDPDataType::String:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_String, FName(*FieldName));
+	            break;
+	        case EUDPDataType::Vector:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Struct, TBaseStructure<FVector>::Get(), FName(*FieldName));
+	            break;
+	        case EUDPDataType::Rotator:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Struct, TBaseStructure<FRotator>::Get(), FName(*FieldName));
+	            break;
+	        case EUDPDataType::Transform:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Struct, TBaseStructure<FTransform>::Get(), FName(*FieldName));
+	            break;
+	        case EUDPDataType::Custom:
+	            NewPin = CreatePin(EGPD_Output, UEdGraphSchema_K2::PC_Struct, FUDPCustomStruct::StaticStruct(), FName(*FieldName));
+	            break;
 		}
 
 		if (NewPin)
@@ -426,23 +444,41 @@ void UK2Node_BreakUDPPacket::ExpandNode(FKismetCompilerContext& CompilerContext,
         	{
         		switch (Field.DataType)
         		{
-        		case EUDPDataType::Float:
-        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetFloat);
-        			break;
-        		case EUDPDataType::Int:
-        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetInt);
-        			break;
-        		case EUDPDataType::Bool:
-        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetBool);
-        			break;
-        		case EUDPDataType::String:
-        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetString);
-        			break;
-        		case EUDPDataType::Custom:
-        			FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetCustomStruct);
-        			break;
-        		default:
-        			continue;
+        			case EUDPDataType::Bool:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetBool);
+	                    break;
+	                case EUDPDataType::Byte:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetByte);
+	                    break;
+	                case EUDPDataType::Int:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetInt);
+	                    break;
+	                case EUDPDataType::Int64:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetInt64);
+	                    break;
+	                case EUDPDataType::Float:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetFloat);
+	                    break;
+	                case EUDPDataType::Double:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetDouble);
+	                    break;
+	                case EUDPDataType::String:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetString);
+	                    break;
+	                case EUDPDataType::Vector:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetVector);
+	                    break;
+	                case EUDPDataType::Rotator:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetRotator);
+	                    break;
+	                case EUDPDataType::Transform:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetTransform);
+	                    break;
+	                case EUDPDataType::Custom:
+	                    FunctionName = GET_FUNCTION_NAME_CHECKED(UUDPPacketLibrary, GetCustomStruct);
+	                    break;
+        			default:
+        				continue;
         		}
         	}
 

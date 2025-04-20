@@ -6,6 +6,7 @@
 #include "UDPDataType.h"
 #include "Engine/DataAsset.h"
 #include "UDPCustomStruct.h"
+#include "Kismet2/BlueprintEditorUtils.h"
 #include "UDPPacketStructure.generated.h"
 
 /**
@@ -17,23 +18,19 @@ struct UDPCOMMUNICATION_API FUDPField
 {
 	GENERATED_BODY()
 
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName = "Field Name (Optional)",
-	// 	meta=(ToolTip = "Name of the field in the packet structure (defaults to Field <index>)."))
-	// FString Name;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName = "Datatype",
 		meta=(ToolTip = "Type of data to be sent/received."))
 	EUDPDataType DataType = EUDPDataType::Float;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName = "Maximum Length (Character Count)",
 		meta = (ClampMin = "1", ClampMax = "502", UIMin = "1", UIMax = "502", NoResetToDefault,
-		EditCondition = "DataType==EUDPDataType::String", EditConditionHides,
-		ToolTip="Maximum length of the string. If a shorter string is sent, it still takes the max length in bytes. NOTE! If there is a field after this one, padding will be added to align the next field."))
+		EditCondition = "DataType==EUDPDataType::Name || DataType==EUDPDataType::String || DataType==EUDPDataType::Text", EditConditionHides,
+		ToolTip="Maximum length of the string. If a shorter string is sent, it still takes the max length in bytes.\nNOTE! If there is another field after this one, padding until the next 4th byte is added (Example: max length = 5, actual length = 8)."))
 	int32 MaxLength = 128;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName="Is an Array", 
 		meta = (ClampMin = "1", ClampMax = "500", UIMin = "1", UIMax = "500",
-		EditCondition = "DataType!=EUDPDataType::String && DataType!=EUDPDataType::Custom", EditConditionHides,
+		EditCondition = "DataType==EUDPDataType::Bool || DataType==EUDPDataType::Int || DataType==EUDPDataType::Float", EditConditionHides,
 		ToolTip="Changes the pin and structure to take/receive an array instead of a single element."))
 	bool IsArray = false;
 	

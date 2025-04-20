@@ -12,25 +12,6 @@ UUDPSender::UUDPSender(const FObjectInitializer& ObjectInitializer) : Super(Obje
 	SenderSocket = nullptr;
 }
 
-// Called when the game starts
-void UUDPSender::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
-
-
-// Called every frame
-void UUDPSender::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-
-
 bool UUDPSender::StartUDPSender(const FString& SocketName, const FString& IpAddress, const int32 Port)
 {
 	// Create Remote Address
@@ -84,17 +65,6 @@ bool UUDPSender::UDPSendPacket(const FUDPPacket& UDPPacket)
 
 	return true;
 }
-
-// FUDPPacket UUDPSender::CreateUDPPacket()
-// {
-// 	// FUDPPacket UDPPacket;
-// 	// if (PacketStructure)
-// 	// {
-// 	// 	UDPPacket.InitWithStructure(PacketStructure);
-// 	// }
-// 	// return UDPPacket;
-// 	return FUDPPacket();
-// }
 
 void UUDPSender::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

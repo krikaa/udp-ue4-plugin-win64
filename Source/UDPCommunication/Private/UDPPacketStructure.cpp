@@ -11,22 +11,17 @@ int32 FUDPField::GetFieldSize() const
 {
     switch (DataType)
     {
-    case EUDPDataType::Float: return sizeof(float);
-    case EUDPDataType::Int: return sizeof(int32);
-    // case EUDPDataType::Byte: return sizeof(uint8);
     case EUDPDataType::Bool: return sizeof(bool);
+    case EUDPDataType::Byte: return sizeof(uint8);
+    case EUDPDataType::Int: return sizeof(int32);
+    case EUDPDataType::Int64: return sizeof(int64);
+    case EUDPDataType::Float: return sizeof(float);
+    case EUDPDataType::Double: return sizeof(double);
     case EUDPDataType::String: return sizeof(int32) + MaxLength;
+    case EUDPDataType::Vector: return sizeof(FVector);
+    case EUDPDataType::Rotator: return sizeof(FRotator);
+    case EUDPDataType::Transform: return sizeof(FTransform);
     case EUDPDataType::Custom: return sizeof(FUDPCustomStruct);
-    // case EUDPDataType::Vector: return sizeof(FVector);
-    // case EUDPDataType::Vector2D: return sizeof(FVector2D);
-    // case EUDPDataType::Rotator: return sizeof(FRotator);
-    // case EUDPDataType::Quat: return sizeof(FQuat);
-    // case EUDPDataType::Color: return sizeof(FColor);
-    // case EUDPDataType::UInt16: return sizeof(uint16);
-    // case EUDPDataType::UInt32: return sizeof(uint32);
-    // case EUDPDataType::UInt64: return sizeof(uint64);
-    // case EUDPDataType::Int64: return sizeof(int64);
-    // case EUDPDataType::Double: return sizeof(double);
     default: return 0;
     }
 }
@@ -35,10 +30,16 @@ int32 FUDPField::GetFieldAlignment() const
 {
 	switch (DataType)
 	{
-	case EUDPDataType::Float: return alignof(float);
-	case EUDPDataType::Int: return alignof(int32);
 	case EUDPDataType::Bool: return alignof(bool);
+	case EUDPDataType::Byte: return alignof(uint8);
+	case EUDPDataType::Int: return alignof(int32);
+	case EUDPDataType::Int64: return alignof(int64);
+	case EUDPDataType::Float: return alignof(float);
+	case EUDPDataType::Double: return alignof(double);
 	case EUDPDataType::String: return alignof(int32);
+	case EUDPDataType::Vector: return alignof(FVector);
+	case EUDPDataType::Rotator: return alignof(FRotator);
+	case EUDPDataType::Transform: return alignof(FTransform);
 	case EUDPDataType::Custom: return alignof(FUDPCustomStruct);
 	default: return 1;
 	}
@@ -91,10 +92,8 @@ void UUDPPacketStructure::PostEditChangeProperty(struct FPropertyChangedEvent& P
 	FName PropertyName = PropertyChangedEvent.GetPropertyName();
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(UUDPPacketStructure, Fields))
 	{
-		// Check if an element was added (MapProperty will have MapAdd notification)
 		if (PropertyChangedEvent.ChangeType == EPropertyChangeType::ArrayAdd)
 		{
-			// Find the newly added element with empty key and give it a name
 			for (auto& Pair : Fields)
 			{
 				if (Pair.Key.IsEmpty())
@@ -113,8 +112,30 @@ void UUDPPacketStructure::PostEditChangeProperty(struct FPropertyChangedEvent& P
 				}
 			}
 		}
+		
+		CompileStructure();
+	}
+	else if (PropertyChangedEvent.GetMemberPropertyName() == GET_MEMBER_NAME_CHECKED(UUDPPacketStructure, Fields))
+	{
+		if (PropertyChangedEvent.Property && 
+			PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(FUDPField, DataType))
+		{
+			for (auto& Pair : Fields)
+			{
+				FUDPField& Field = Pair.Value;
+				
+				if (Field.IsArray && 
+					(Field.DataType != EUDPDataType::Bool || 
+					 Field.DataType != EUDPDataType::Int ||
+					 Field.DataType != EUDPDataType::Float))
+				{
+					Field.IsArray = false;
+					Field.Count = 1;
+				}
+			}
+		}
         
-		// Always recompile when the structure changes
+		// Recompile the structure
 		CompileStructure();
 	}
 }

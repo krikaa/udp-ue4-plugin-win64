@@ -41,9 +41,21 @@ FUDPPacket UUDPPacketLibrary::CreateUDPPacket()
 	return FUDPPacket();
 }
 
-void UUDPPacketLibrary::SetFloat(FUDPPacket& UDPPacket, const FString& FieldName, float Value)
+
+// ----------- SET AND GET FUNCTIONS FOR DIFFERENT DATATYPES -----------
+
+// --- SINGLE VALUES ---
+
+// Setters
+
+void UUDPPacketLibrary::SetBool(FUDPPacket& UDPPacket, const FString& FieldName, bool Value)
 {
-	UDPPacket.SetFloat(FieldName, Value);
+	UDPPacket.SetBool(FieldName, Value);
+}
+
+void UUDPPacketLibrary::SetByte(FUDPPacket& UDPPacket, const FString& FieldName, uint8 Value)
+{
+	UDPPacket.SetByte(FieldName, Value);
 }
 
 void UUDPPacketLibrary::SetInt(FUDPPacket& UDPPacket, const FString& FieldName, int32 Value)
@@ -51,9 +63,19 @@ void UUDPPacketLibrary::SetInt(FUDPPacket& UDPPacket, const FString& FieldName, 
 	UDPPacket.SetInt(FieldName, Value);
 }
 
-void UUDPPacketLibrary::SetBool(FUDPPacket& UDPPacket, const FString& FieldName, bool Value)
+void UUDPPacketLibrary::SetInt64(FUDPPacket& UDPPacket, const FString& FieldName, int64 Value)
 {
-	UDPPacket.SetBool(FieldName, Value);
+	UDPPacket.SetInt64(FieldName, Value);
+}
+
+void UUDPPacketLibrary::SetFloat(FUDPPacket& UDPPacket, const FString& FieldName, float Value)
+{
+	UDPPacket.SetFloat(FieldName, Value);
+}
+
+void UUDPPacketLibrary::SetDouble(FUDPPacket& UDPPacket, const FString& FieldName, double Value)
+{
+	UDPPacket.SetDouble(FieldName, Value);
 }
 
 void UUDPPacketLibrary::SetString(FUDPPacket& UDPPacket, const FString& FieldName, const FString& Value)
@@ -61,9 +83,31 @@ void UUDPPacketLibrary::SetString(FUDPPacket& UDPPacket, const FString& FieldNam
 	UDPPacket.SetString(FieldName, Value);
 }
 
-float UUDPPacketLibrary::GetFloat(const FUDPPacket& UDPPacket, const FString& FieldName)
+void UUDPPacketLibrary::SetVector(FUDPPacket& UDPPacket, const FString& FieldName, FVector Value)
 {
-	return UDPPacket.GetFloat(FieldName);
+	UDPPacket.SetVector(FieldName, Value);
+}
+
+void UUDPPacketLibrary::SetRotator(FUDPPacket& UDPPacket, const FString& FieldName, FRotator Value)
+{
+	UDPPacket.SetRotator(FieldName, Value);
+}
+
+void UUDPPacketLibrary::SetTransform(FUDPPacket& UDPPacket, const FString& FieldName, FTransform Value)
+{
+	UDPPacket.SetTransform(FieldName, Value);
+}
+
+// Getters
+
+bool UUDPPacketLibrary::GetBool(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetBool(FieldName);
+}
+
+uint8 UUDPPacketLibrary::GetByte(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetByte(FieldName);
 }
 
 int32 UUDPPacketLibrary::GetInt(const FUDPPacket& UDPPacket, const FString& FieldName)
@@ -71,9 +115,19 @@ int32 UUDPPacketLibrary::GetInt(const FUDPPacket& UDPPacket, const FString& Fiel
 	return UDPPacket.GetInt(FieldName);
 }
 
-bool UUDPPacketLibrary::GetBool(const FUDPPacket& UDPPacket, const FString& FieldName)
+int64 UUDPPacketLibrary::GetInt64(const FUDPPacket& UDPPacket, const FString& FieldName)
 {
-	return UDPPacket.GetBool(FieldName);
+	return UDPPacket.GetInt64(FieldName);
+}
+
+float UUDPPacketLibrary::GetFloat(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetFloat(FieldName);
+}
+
+double UUDPPacketLibrary::GetDouble(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetDouble(FieldName);
 }
 
 FString UUDPPacketLibrary::GetString(const FUDPPacket& UDPPacket, const FString& FieldName)
@@ -81,9 +135,28 @@ FString UUDPPacketLibrary::GetString(const FUDPPacket& UDPPacket, const FString&
 	return UDPPacket.GetString(FieldName);
 }
 
-void UUDPPacketLibrary::SetFloatArray(FUDPPacket& UDPPacket, const FString& FieldName, const TArray<float>& Value)
+FVector UUDPPacketLibrary::GetVector(const FUDPPacket& UDPPacket, const FString& FieldName)
 {
-	UDPPacket.SetFloatArray(FieldName, Value);
+	return UDPPacket.GetVector(FieldName);
+}
+
+FRotator UUDPPacketLibrary::GetRotator(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetRotator(FieldName);
+}
+
+FTransform UUDPPacketLibrary::GetTransform(const FUDPPacket& UDPPacket, const FString& FieldName)
+{
+	return UDPPacket.GetTransform(FieldName);
+}
+
+// --- ARRAYS ---
+
+// Setters
+
+void UUDPPacketLibrary::SetBoolArray(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const TArray<bool>& Value)
+{
+	UDPPacket.SetBoolArray(FieldName, Value);
 }
 
 void UUDPPacketLibrary::SetIntArray(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const TArray<int32>& Value)
@@ -91,14 +164,16 @@ void UUDPPacketLibrary::SetIntArray(UPARAM(ref) FUDPPacket& UDPPacket, const FSt
 	UDPPacket.SetIntArray(FieldName, Value);
 }
 
-void UUDPPacketLibrary::SetBoolArray(UPARAM(ref) FUDPPacket& UDPPacket, const FString& FieldName, const TArray<bool>& Value)
+void UUDPPacketLibrary::SetFloatArray(FUDPPacket& UDPPacket, const FString& FieldName, const TArray<float>& Value)
 {
-	UDPPacket.SetBoolArray(FieldName, Value);
+	UDPPacket.SetFloatArray(FieldName, Value);
 }
 
-TArray<float> UUDPPacketLibrary::GetFloatArray(const FUDPPacket& UDPPacket, const FString& FieldName)
+// Getters
+
+TArray<bool> UUDPPacketLibrary::GetBoolArray(const FUDPPacket& UDPPacket, const FString& FieldName)
 {
-	return UDPPacket.GetFloatArray(FieldName);
+	return UDPPacket.GetBoolArray(FieldName);
 }
 
 TArray<int32> UUDPPacketLibrary::GetIntArray(const FUDPPacket& UDPPacket, const FString& FieldName)
@@ -106,15 +181,21 @@ TArray<int32> UUDPPacketLibrary::GetIntArray(const FUDPPacket& UDPPacket, const 
 	return UDPPacket.GetIntArray(FieldName);
 }
 
-TArray<bool> UUDPPacketLibrary::GetBoolArray(const FUDPPacket& UDPPacket, const FString& FieldName)
+TArray<float> UUDPPacketLibrary::GetFloatArray(const FUDPPacket& UDPPacket, const FString& FieldName)
 {
-	return UDPPacket.GetBoolArray(FieldName);
+	return UDPPacket.GetFloatArray(FieldName);
 }
 
-void UUDPPacketLibrary::SetCustomStruct(FUDPPacket& UDPPacket, const FString& FieldName, const FUDPCustomStruct& Value)
+// --- CUSTOM ----
+
+// Setters
+
+void UUDPPacketLibrary::SetCustomStruct(FUDPPacket& UDPPacket, const FString& FieldName, FUDPCustomStruct Value)
 {
 	UDPPacket.SetCustomStruct(FieldName, Value);
 }
+
+// Getters
 
 FUDPCustomStruct UUDPPacketLibrary::GetCustomStruct(const FUDPPacket& UDPPacket, const FString& FieldName)
 {
