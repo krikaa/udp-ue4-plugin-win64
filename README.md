@@ -1,29 +1,28 @@
 # UDPCommunication for UE5 #
 
-UDPCommunication is a plugin for UE5 that implements simple UDP communication. This is an upgraded variant of the [lightweight UDPCommunication UE4 plugin](https://github.com/is-centre/udp-ue4-plugin-win64) by TalTech CIS.
+UDPCommunication is a plugin for UE5 that implements simple UDP communication. This is an upgraded variant of the [lightweight UDPCommunication UE4 plugin](https://github.com/is-centre/udp-ue4-plugin-win64) by TalTech Centre of Intelligent Systems.
 
 Like the lightweight version, this upgraded variant can be still used for demanding applications like real-time communication. However, if performance is crucial, it is currently recommended to use the light version, as this version has yet to be extensively tested.
 
 ## Differences between versions ##
 
+### Lightweight: ###
 
-### [Lightweight](https://github.com/is-centre/udp-ue4-plugin-win64) ###
-
-The lightweight version of the UDPCommunication plugin requires setting up Visual Studio and having some understanding of C++. To change the sent/received packet structure, the source code must be edited and recompiled. To create a sender and receiver, separate actors must be added to the level with the corresponding parent class. 
-
-Advantages:
-* Proven reliability and functionality - used in many demanding projects
-* Lightweight - little code to maintain, easier to prevent bugs and optimize
+The [lightweight](https://github.com/is-centre/udp-ue4-plugin-win64) version of the UDPCommunication plugin requires setting up Visual Studio and having some understanding of C++. To change the sent/received packet structure, the source code must be edited and recompiled. To create a sender and receiver, separate actors must be added to the level with the corresponding parent class. 
 
 The lightweight version has been used in [Alpha Control Lab](https://a-lab.ee/) and [Re:creation VR&AR Lab](https://recreation.ee/) primarily for real-time communication with MATLAB/Simulink software.
 
-Application example: https://recreation.ee/r/about/2018-11-ut/02/
+[Application example](https://recreation.ee/r/about/2018-11-ut/02/) at Re:creation.
 
-### Upgraded ###
+<ins>Advantages:</ins>
+* Proven reliability and functionality - used in many demanding projects
+* Lightweight - little code to maintain, easier to prevent bugs and optimize
+
+### Upgraded: ###
 
 Unlike the lightweight version, the upgraded variant does not typically require the setup of a coding environment (e.g. Visual Studio) and can be used directly in a blueprint project. It features a selection of most primitive data types, arrays and the flexibility to add more complex data types, by converting them to a byte stream or optionally using the older method by manually coding the serialization of said types.
 
-Advantages:
+<ins>Advantages:</ins>
 * Easier to use - packet structure can be changed in the Unreal Editor details panel
 * Faster to use - no need to recompile code, relaunch Unreal or set up coding environments
 * Flexible - added modularity makes it easy to swap, save and use multiple packet structures and senders/receivers
@@ -31,22 +30,24 @@ Advantages:
 # Setting up and using the plugin #
 
 If your project might benefit more with the lightweight version, refer to the guides in the [repository by TalTech CIS](https://github.com/is-centre/udp-ue4-plugin-win64)
-**The following instructions only apply for the upgraded version.**
+> [!IMPORTANT]
+> The following instructions only apply for the upgraded version.
 
 ## Installation ##
 
 1. Create a ***Plugins*** folder in your UE5 project root if it does not already exist. The plugin can be used even in case of purely blueprint-based projects.
-2. Copy the UDPCommunication folder from **5.xx** into the new folder where **xx** is your UE5.xx engine version.
-3. The plugin is automatically activated and its contents can now be used. Try relaunching Unreal Engine, if UDPCommunication is not appearing in the plugins list. 
+2. Copy the UDPCommunication folder from ***5.xx*** into the new folder where ***xx*** is your ***UE5.xx*** engine version.
+3. The plugin is automatically activated and its contents can now be used. Try relaunching Unreal Engine if UDPCommunication is not appearing in the plugins list. 
 
-## Setting up a receiver/sender instance ##
+## Setting up a sender/receiver instance ##
 
-**First things to consider:**
+### First things to consider: ###
+
 Both the sender and receiver are **Actor Components**. This means that you can add UDP functionality to the actor of your choice:
 * If you want to send and/or receive data that is only associated with one UE actor, it is recommended that you add the components directly to the actor you want to use the communciation with. 
 * If you want to send data originating from multiple actors, you can pick one or create a seperate actor that is responsible for the communication, in which you can add the components. You can use the other actor's data for sending/receiving by referencing to them in the blueprint.
 
-**Adding the receiver/sender:**
+### Adding the receiver/sender: ###
 1. Create an **Actor** blueprint for the actor responsible for the communication.
 2. In the blueprint editor, add the component ***UDPSender*** and/or ***UDPReceiver***, depending on which functionalities do you need.
 3. Initialize the sender and/or receiver using the blueprint nodes ***Start UDP Sender*** and ***Start UDP Receiver***. Generally you should connect them to the On Begin Play event. Fill the necessary node fields: input the source/destination IP and port, name the socket. 
@@ -59,7 +60,7 @@ The plugin allows to create multiple packet structures to send or receive by edi
 2. Customize the packet structure by opening the data asset and changing the settings.
 	* Add more data fields by clicking the **+** icon.
 	* You can rename the default map field names (Field 1, 2...) to better understand what data the field carries.
-	* Specify the data type from the list of option and fill the other details.
+	* Specify the data type from the list of options and fill the other details like length if necessary. See the section [Data types](#data-types) for more information.
 	* You can also choose to create an array instead by ticking ***Is Array*** in the options. The created data pin will then only accept arrays and you will have to break them down on your own.
 	* Choosing the type ***Custom*** will use the legacy method of defining a data structure by editing the source code. This requires the setup of a coding environment. See ***CustomUDPData.h*** for more details. For examples, refer to the [lightweight version](https://github.com/is-centre/udp-ue4-plugin-win64) of the UDPCommunication plugin.
 3. Save the changes.
@@ -72,11 +73,36 @@ The plugin allows to create multiple packet structures to send or receive by edi
 
 
 
+# Technical details #
+
+
+
+## Data types ##
+
+
+
+### Strings ###
+
+### Arrays ###
+
+### Custom ###
+
+
+
 ## Updating the plugin ##
 
+If there is no release of UDPCommunication on your preferred version, you can use the simple plugin updater tool ***UpdatePlugin.bat***. It automatically calls the Unreal Automation Tool commands simplifying the updating. It can be used for any plugin, not only UDPCommunication. 
 
+> [!IMPORTANT]
+> To use the updater, you need to set up Visual Studio and install the UE version you want to update to, as Unreal Automation Tool uses Microsoft's build tools to update rebuild the plugin binaries.
 
-## Next steps ##
+[Click here to download the updater tool.](https://github.com/krikaa/udp-ue5-plugin-win64/UpdatePlugin.bat)
+
+# Development #
+
+If you encounter problems or have suggestions for additional functionality, it would be greatly appreciated if you leave them in the repository's [Issues](https://github.com/krikaa/udp-ue5-plugin-win64/issues).
+
+## Planned improvements ##
 
 * Add instruction videos for the newer version.
 
