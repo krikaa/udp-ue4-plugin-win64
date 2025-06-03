@@ -65,7 +65,7 @@ The plugin allows to create multiple packet structures to send or receive by edi
 	* Choosing the type ***Custom*** will use the legacy method of defining a data structure by editing the source code. See the section [Custom](#custom) for more information.
 3. Save the changes.
 
-![Screenshot of Unreal Editor depicting the editing of the UDPPacketStructure data asset.](/GitAssets/StructureExample)
+![Screenshot of Unreal Editor depicting the editing of the UDPPacketStructure data asset.](/GitAssets/StructureExample.png)
 
 ## Sending data ##
 
@@ -77,7 +77,7 @@ Usually the following nodes should be a part of the ***Event Tick*** flow.
 1. Connect the node ***Create UDP Packet***. Select the packet structure you wish to use from the drop-down, this will create the data pins. Connect the data sources to the pins accordingly.
 2. Connect the node ***Send UDP Packet***. Connect the previously created packet to the pin ***UDPPacket*** and the initialized instance of ***UDPSender*** to the pin ***Target***.
 
-![Screenshot of an Unreal Engine blueprint using the UDPCommunication plugin to initialize and send data using UDPSender.](/GitAssets/SenderExample)
+![Screenshot of an Unreal Engine blueprint using the UDPCommunication plugin to initialize and send data using UDPSender.](/GitAssets/SenderExample.png)
 
 ## Receiving data ##
 
@@ -90,7 +90,7 @@ Usually the following nodes should be a part of the ***Event Tick*** flow.
 2. Connect the node ***Get UDP Packet*** to the previous node's ***Ready*** pin. Connect the initialized instance of ***UDPReceiver*** to the pin ***Target***.
 3. Connect the node ***Break UDP Packet***. Connect the returned value from the previous node to the pin ***UDPPacket***. Select the packet structure you wish to use from the drop-down, this will create the data pins. Connect the data sources to the pins accordingly.
 
-![Screenshot of an Unreal Engine blueprint using the UDPCommunication plugin to initialize and send data using UDPReceiver.](/GitAssets/ReceiverExample)
+![Screenshot of an Unreal Engine blueprint using the UDPCommunication plugin to initialize and send data using UDPReceiver.](/GitAssets/ReceiverExample.png)
 
 # Additional information #
 
@@ -133,6 +133,8 @@ Both the real string length and max string length are equal to **one 8-byte char
 > [!IMPORTANT]
 > The strings are encoded in UTF-8 for optimal data usage. This however means that some unstandard characters (like with umlauts) may take more than 8 bytes. Make sure to check the length of the characters if you are not using the default Latin alphabet and increase the max string length if necessary!<br>
 > Example: ä takes double the size - 16 bytes
+
+![A demonstrative graph how string sending is standardized in the UDPCommunication plugin.](/GitAssets/StringExample.png)
 
 ### Arrays ###
 
