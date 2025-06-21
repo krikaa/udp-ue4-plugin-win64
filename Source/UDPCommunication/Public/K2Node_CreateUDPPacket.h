@@ -2,6 +2,8 @@
 
 #pragma once
 
+#if WITH_EDITORONLY_DATA
+
 #include "CoreMinimal.h"
 #include "K2Node.h"
 #include "UDPPacketStructure.h"
@@ -59,3 +61,5 @@ public:
 	
 	void CreatePreservedFieldPins(const TSet<FName>& PinNames, const TMap<FName, TArray<UEdGraphPin*>>& PinConnections);
 };
+
+#endif

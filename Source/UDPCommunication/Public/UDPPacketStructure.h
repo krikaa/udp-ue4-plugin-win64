@@ -18,23 +18,23 @@ struct UDPCOMMUNICATION_API FUDPField
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName = "Datatype",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication", DisplayName = "Datatype",
 		meta=(ToolTip = "Type of data to be sent/received."))
 	EUDPDataType DataType = EUDPDataType::Float;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName = "Maximum Length (Character Count)",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication", DisplayName = "Maximum Length (Character Count)",
 		meta = (ClampMin = "1", ClampMax = "502", UIMin = "1", UIMax = "502", NoResetToDefault,
 		EditCondition = "DataType==EUDPDataType::Name || DataType==EUDPDataType::String || DataType==EUDPDataType::Text", EditConditionHides,
 		ToolTip="Maximum length of the string. If a shorter string is sent, it still takes the max length in bytes.\nNOTE! If there is another field after this one, padding until the next 4th byte is added (Example: max length = 5, actual length = 8)."))
 	int32 MaxLength = 128;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName="Is an Array", 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication", DisplayName="Is an Array", 
 		meta = (ClampMin = "1", ClampMax = "500", UIMin = "1", UIMax = "500",
 		EditCondition = "DataType==EUDPDataType::Bool || DataType==EUDPDataType::Int || DataType==EUDPDataType::Float", EditConditionHides,
 		ToolTip="Changes the pin and structure to take/receive an array instead of a single element."))
 	bool IsArray = false;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, DisplayName="Length (Element Count)",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UDPCommunication", DisplayName="Length (Element Count)",
 		meta = (ClampMin = "1", ClampMax = "124", UIMin = "1", UIMax = "124", NoResetToDefault,
 		EditCondition = "IsArray==true", EditConditionHides,
 		ToolTip="Count of elements in the array. If a shorter array is sent, it still takes the max length in bytes."))

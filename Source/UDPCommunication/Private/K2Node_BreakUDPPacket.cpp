@@ -1,5 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
+#if WITH_EDITORONLY_DATA
+
 #include "K2Node_BreakUDPPacket.h"
 
 #define LOCTEXT_NAMESPACE "K2Node_BreakUDPPacket"
@@ -651,3 +653,4 @@ void UK2Node_BreakUDPPacket::Serialize(FArchive& Ar)
 
 #undef LOCTEXT_NAMESPACE
 
+#endif

@@ -31,8 +31,6 @@ public class UDPCommunication : ModuleRules
 				"InputCore",
 				"Networking",
 				"Sockets",
-				"KismetCompiler",
-				"BlueprintGraph",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

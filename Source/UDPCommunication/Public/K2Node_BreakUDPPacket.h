@@ -2,6 +2,8 @@
 
 #pragma once
 
+#if WITH_EDITORONLY_DATA
+
 #include "CoreMinimal.h"
 #include "K2Node.h"
 #include "UDPPacketStructure.h"
@@ -61,3 +63,5 @@ private:
 	// Helper function to recreate pins based on previously existing pins
 	void CreatePreservedFieldPins(const TSet<FName>& PinNames, const TMap<FName, TArray<UEdGraphPin*>>& PinConnections);
 };
+
+#endif

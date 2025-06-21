@@ -1,5 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
+#if WITH_EDITORONLY_DATA
+
 #include "K2Node_CreateUDPPacket.h"
 
 #define LOCTEXT_NAMESPACE "K2Node_UDPPacket"
@@ -631,3 +633,5 @@ void UK2Node_CreateUDPPacket::CreatePreservedFieldPins(const TSet<FName>& PinNam
 }
 
 #undef LOCTEXT_NAMESPACE
+
+#endif
